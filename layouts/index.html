@@ -1,0 +1,26 @@
+{{- define "main" }}
+<div class="home-intro">
+  {{ .Content }}
+  <p class="lab-pill"><a href="/telemetry/">Lab status and live metrics &#8599;</a></p>
+</div>
+<div class="home-cols">
+  <section>
+    <h2>Start here</h2>
+    <ul>
+      {{- range slice "/incidents/2026-04-17-full-site-power-loss" "/posts/disabling-kube-proxy-under-cilium" "/posts/credential-rotation-as-a-pipeline" "/posts/split-horizon-dns-for-a-homelab" "/posts/backups-with-zero-recurring-spend" "/posts/shipping-a-terraform-provider" }}
+        {{- with $.Site.GetPage . }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>{{ end }}
+      {{- end }}
+    </ul>
+  </section>
+  <section>
+    <h2>Recent</h2>
+    <ul>
+      {{- range first 8 (sort (where site.RegularPages "Section" "in" (slice "posts" "incidents")) "Date" "desc") }}
+        {{- $t := "note" }}{{ with .Params.types }}{{ $t = index . 0 }}{{ end }}
+        <li><span class="badge badge-{{ $t }}">{{ $t }}</span><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
+      {{- end }}
+    </ul>
+  </section>
+</div>
+<p class="home-all"><a href="/writing/">All writing &#8594;</a></p>
+{{- end }}

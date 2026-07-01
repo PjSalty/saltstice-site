@@ -1,0 +1,20 @@
+{{- define "main" }}
+<header class="page-header"><h1>{{ .Title }}</h1>{{ with .Description }}<div class="post-description">{{ . }}</div>{{ end }}</header>
+{{- $writing := where site.RegularPages "Section" "in" (slice "posts" "incidents") }}
+<div class="writing-filter">
+  <button data-filter="all" class="active">All</button>
+  <button data-filter="build">Build</button>
+  <button data-filter="runbook">Runbook</button>
+  <button data-filter="incident">Incident</button>
+  <button data-filter="note">Note</button>
+</div>
+<div class="writing-list">
+{{- range (sort $writing "Date" "desc") }}
+  {{- $t := "note" }}{{ with .Params.types }}{{ $t = index . 0 }}{{ end }}
+  <article class="writing-entry" data-type="{{ $t }}"><span class="badge badge-{{ $t }}">{{ $t }}</span><a href="{{ .RelPermalink }}">{{ .Title }}</a><time>{{ .Date.Format "Jan 2006" }}</time></article>
+{{- end }}
+</div>
+<script>
+document.querySelectorAll('.writing-filter button').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.writing-filter button').forEach(function(x){x.classList.remove('active')});b.classList.add('active');var f=b.dataset.filter;document.querySelectorAll('.writing-entry').forEach(function(e){e.style.display=(f==='all'||e.dataset.type===f)?'':'none'})})});
+</script>
+{{- end }}
