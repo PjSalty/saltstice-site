@@ -1,0 +1,24 @@
+{
+  "generated": "2026-06-12T21:55:00Z",
+  "cluster": {
+    "cpu_pct": 16.1,
+    "mem_pct": 68.2,
+    "pods_running": 159,
+    "nodes": 6
+  },
+  "network": {
+    "pod_layer_mbps": 770.0,
+    "node_layer_mbps": 103.6,
+    "note": "24h averages, megabits per second. Pod layer counts both sides of every veth so it reads high by design."
+  },
+  "storage": {
+    "pool": "tank",
+    "status": "DEGRADED",
+    "used_pct": 36.4,
+    "size_tb": 72.0
+  },
+  "build": {
+    "commits_total": 2964,
+    "cli_releases": 140
+  }
+}

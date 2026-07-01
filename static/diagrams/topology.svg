@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 660" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+  <style>
+    .box { fill: #181825; stroke: #45475a; rx: 6; }
+    .node { fill: #1e1e2e; stroke: #585b70; rx: 4; }
+    .lbl { fill: #cdd6f4; font-size: 12px; }
+    .sm { fill: #9399b2; font-size: 10px; }
+    .tag { font-size: 10px; font-weight: bold; }
+    .wire { stroke: #45475a; stroke-width: 1.5; fill: none; }
+  </style>
+  <rect width="920" height="660" fill="#1e1e2e"/>
+
+  <!-- internet + edge -->
+  <rect class="node" x="40" y="24" width="120" height="34"/>
+  <text class="lbl" x="100" y="45" text-anchor="middle">internet</text>
+  <path class="wire" d="M100 58 V92"/>
+  <rect class="node" x="40" y="92" width="160" height="44"/>
+  <text class="lbl" x="120" y="110" text-anchor="middle">RB4011</text>
+  <text class="sm" x="120" y="126" text-anchor="middle">router · firewall · NAT</text>
+
+  <path class="wire" d="M200 114 H280"/>
+  <rect class="node" x="280" y="92" width="160" height="44"/>
+  <text class="lbl" x="360" y="110" text-anchor="middle">CRS317</text>
+  <text class="sm" x="360" y="126" text-anchor="middle">10G aggregation</text>
+
+  <path class="wire" d="M440 114 H520"/>
+  <rect class="node" x="520" y="92" width="160" height="44"/>
+  <text class="lbl" x="600" y="110" text-anchor="middle">CRS328</text>
+  <text class="sm" x="600" y="126" text-anchor="middle">PoE access</text>
+
+  <!-- trunk to server -->
+  <path class="wire" d="M360 136 V168"/>
+  <text class="sm" x="372" y="158">10GbE trunk · 10GbE trunk</text>
+
+  <!-- server container -->
+  <rect class="box" x="40" y="168" width="840" height="464"/>
+  <text class="lbl" x="60" y="192">Dell R740xd · Proxmox VE</text>
+  <text class="sm" x="860" y="192" text-anchor="end">40c/80t · 256 GiB ECC · ZFS mirror · RTX A2000</text>
+
+  <!-- VLAN 20 -->
+  <rect class="box" x="60" y="208" width="390" height="146" stroke="#89b4fa"/>
+  <text class="tag" x="72" y="226" fill="#89b4fa">VLAN 20 · infrastructure · <vlan-cidr></text>
+  <rect class="node" x="72" y="238" width="86" height="30"/><text class="lbl" x="115" y="257" text-anchor="middle">gitlab</text>
+  <rect class="node" x="166" y="238" width="86" height="30"/><text class="lbl" x="209" y="257" text-anchor="middle">harbor</text>
+  <rect class="node" x="260" y="238" width="86" height="30"/><text class="lbl" x="303" y="257" text-anchor="middle">netbox</text>
+  <rect class="node" x="354" y="238" width="86" height="30"/><text class="lbl" x="397" y="257" text-anchor="middle">adguard</text>
+  <rect class="node" x="72" y="276" width="180" height="30"/><text class="lbl" x="162" y="295" text-anchor="middle">haproxy ×2 · API VIP</text>
+  <rect class="node" x="260" y="276" width="86" height="30"/><text class="lbl" x="303" y="295" text-anchor="middle">ci-runner</text>
+  <rect class="node" x="354" y="276" width="86" height="30"/><text class="lbl" x="397" y="295" text-anchor="middle">amp</text>
+  <text class="sm" x="72" y="340">keepalived VRRP fronts the K8s API</text>
+
+  <!-- VLAN 30 -->
+  <rect class="box" x="470" y="208" width="390" height="146" stroke="#cba6f7"/>
+  <text class="tag" x="482" y="226" fill="#cba6f7">VLAN 30 · kubernetes · <vlan-cidr></text>
+  <rect class="node" x="482" y="238" width="116" height="30"/><text class="lbl" x="540" y="257" text-anchor="middle">master ×3</text>
+  <rect class="node" x="606" y="238" width="116" height="30"/><text class="lbl" x="664" y="257" text-anchor="middle">worker ×N</text>
+  <rect class="node" x="730" y="238" width="116" height="30"/><text class="lbl" x="788" y="257" text-anchor="middle">gpu worker</text>
+  <text class="sm" x="482" y="290">RKE2 · Cilium (kube-proxy-free) · Karpenter</text>
+  <text class="sm" x="482" y="306">provisions/destroys worker VMs on Proxmox</text>
+  <text class="sm" x="482" y="340">18 apps · 15 controllers · Flux reconciled</text>
+
+  <!-- VLAN 40 -->
+  <rect class="box" x="60" y="370" width="390" height="86" stroke="#f9e2af"/>
+  <text class="tag" x="72" y="388" fill="#f9e2af">VLAN 40 · storage · <vlan-cidr></text>
+  <rect class="node" x="72" y="400" width="150" height="30"/><text class="lbl" x="147" y="419" text-anchor="middle">truenas (ZFS)</text>
+  <text class="sm" x="236" y="412">iSCSI → databases (RWO)</text>
+  <text class="sm" x="236" y="428">NFS → shared volumes (RWX)</text>
+
+  <!-- VLAN 50 -->
+  <rect class="box" x="470" y="370" width="390" height="86" stroke="#a6e3a1"/>
+  <text class="tag" x="482" y="388" fill="#a6e3a1">VLAN 50 · applications · <vlan-cidr></text>
+  <rect class="node" x="482" y="400" width="170" height="30"/><text class="lbl" x="567" y="419" text-anchor="middle">traefik ingress VIP</text>
+  <text class="sm" x="664" y="406">MetalLB VIPs, advertised</text>
+  <text class="sm" x="664" y="420">via BGP + MD5 to RB4011</text>
+  <text class="sm" x="664" y="434">Authentik forward-auth</text>
+
+  <!-- VLAN 60 -->
+  <rect class="box" x="60" y="472" width="390" height="86" stroke="#f38ba8"/>
+  <text class="tag" x="72" y="490" fill="#f38ba8">VLAN 60 · DMZ · <vlan-cidr></text>
+  <rect class="node" x="72" y="502" width="150" height="30"/><text class="lbl" x="147" y="521" text-anchor="middle">dmz traefik</text>
+  <rect class="node" x="230" y="502" width="100" height="30"/><text class="lbl" x="280" y="521" text-anchor="middle">vpn</text>
+  <text class="sm" x="72" y="548">internet-exposed · segmented</text>
+
+  <!-- VLAN 1 -->
+  <rect class="box" x="470" y="472" width="390" height="86" stroke="#6c7086"/>
+  <text class="tag" x="482" y="490" fill="#6c7086">VLAN 1 · management · <mgmt-ip>/24</text>
+  <rect class="node" x="482" y="502" width="100" height="30"/><text class="lbl" x="532" y="521" text-anchor="middle">iDRAC</text>
+  <rect class="node" x="590" y="502" width="170" height="30"/><text class="lbl" x="675" y="521" text-anchor="middle">router + switch mgmt</text>
+  <text class="sm" x="482" y="548">BMC + network devices only</text>
+
+  <text class="sm" x="60" y="592">every cross-VLAN flow is an explicit firewall rule on the RB4011 · default drop</text>
+  <text class="sm" x="60" y="612">full design: /posts/six-vlans-and-an-honest-firewall-audit/</text>
+</svg>

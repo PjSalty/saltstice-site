@@ -1,0 +1,58 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      HUGO_VERSION: 0.151.0
+    steps:
+      - name: Install Hugo CLI
+        # Pin the expected sha256 of the .deb in-repo so a swapped/MITM'd or
+        # tampered release fails the build instead of installing as root.
+        # When bumping HUGO_VERSION, update HUGO_SHA256 from the release's
+        # hugo_<version>_checksums.txt in the same change.
+        env:
+          HUGO_SHA256: 163ee16148303c0662c0531023a28a16158abba4062b96ffceaae9c0c8bd37fe
+        run: |
+          deb="hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
+          wget -q -O "${{ runner.temp }}/${deb}" \
+            "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${deb}"
+          echo "${HUGO_SHA256}  ${{ runner.temp }}/${deb}" | sha256sum -c -
+          sudo dpkg -i "${{ runner.temp }}/${deb}"
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - uses: actions/configure-pages@v5
+      - name: Build with Hugo
+        env:
+          HUGO_ENVIRONMENT: production
+          HUGO_ENV: production
+        run: hugo --gc --minify --baseURL "https://saltstice.com/"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,20 @@
+# Hugo build output
+/public/
+/resources/_gen/
+.hugo_build.lock
+
+# Local artifacts
+*.log
+.DS_Store
+
+# Secrets that should never be here
+.env
+.env.*
+*.key
+*.pem
+
+# Local scratch / cache (never ship)
+resources.bak.*
+.playwright-mcp/
+BULK-EDIT.md
+REVIEW-homepage.md

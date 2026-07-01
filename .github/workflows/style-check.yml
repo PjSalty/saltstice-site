@@ -1,0 +1,18 @@
+name: style-check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  no-typographic-dashes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Block em and en dashes in site source
+        run: |
+          if grep -rnP '\x{2014}|\x{2013}' content/ layouts/ data/ i18n/ archetypes/ 2>/dev/null; then
+            echo "typographic dashes found, use a comma or a plain hyphen"
+            exit 1
+          fi

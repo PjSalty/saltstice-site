@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 280" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+  <rect width="640" height="280" fill="#1e1e2e"/>
+  <text x="40" y="32" fill="#cdd6f4" font-size="13">commits per month · five infra repos · 2,964 total</text>
+
+  <!-- baseline -->
+  <line x1="40" y1="220" x2="600" y2="220" stroke="#45475a" stroke-width="1.5"/>
+
+  <!-- bars: scale 919 -> 150px => px = n * 0.1632 -->
+  <g fill="#cba6f7">
+    <rect x="60"  y="70.0" width="72" height="150.0"/>
+    <rect x="172" y="88.1" width="72" height="131.9"/>
+    <rect x="284" y="105.3" width="72" height="114.7"/>
+    <rect x="396" y="196.2" width="72" height="23.8"/>
+    <rect x="508" y="156.7" width="72" height="63.3" fill="#9399b2"/>
+  </g>
+
+  <!-- values -->
+  <g fill="#cdd6f4" font-size="12" text-anchor="middle">
+    <text x="96"  y="62">919</text>
+    <text x="208" y="80">808</text>
+    <text x="320" y="97">703</text>
+    <text x="432" y="188">146</text>
+    <text x="544" y="148">388</text>
+  </g>
+
+  <!-- month labels -->
+  <g fill="#9399b2" font-size="12" text-anchor="middle">
+    <text x="96"  y="240">feb</text>
+    <text x="208" y="240">mar</text>
+    <text x="320" y="240">apr</text>
+    <text x="432" y="240">may</text>
+    <text x="544" y="240">jun*</text>
+  </g>
+
+  <text x="40" y="266" fill="#6c7086" font-size="10">* month in progress · may dip = provider v2.0 work happened in a different repo</text>
+</svg>
