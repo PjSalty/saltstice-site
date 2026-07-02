@@ -7,7 +7,7 @@ types: ["build"]
 topics: ["Terraform", "TrueNAS", "Go"]
 ---
 
-[PjSalty/truenas](https://registry.terraform.io/providers/PjSalty/truenas/latest) is a Terraform provider for TrueNAS, published on the public Registry, currently v2.1.
+[PjSalty/truenas](https://registry.terraform.io/providers/PjSalty/truenas/latest) is a Terraform provider for TrueNAS, published on the public Registry, currently {{< registry-version "truenas" >}}.
 
 ## What done means for a provider
 

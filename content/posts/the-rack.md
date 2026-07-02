@@ -13,6 +13,6 @@ A used Dell R740xd. Two Xeon Gold 6242R (40c/80t), 256GB DDR4 ECC, SSDs in a ZFS
 
 ## What runs on it
 
-Proxmox, 17 VMs. Six of them make up the RKE2 cluster. TrueNAS owns the bulk storage. The core services are GitLab, Harbor, NetBox, AdGuard, and the HAProxy pair. The A2000 passes through to one worker for Jellyfin transcoding.
+Proxmox, {{< lab "vms_running" >}} VMs. {{< lab "k8s_nodes" >}} of them make up the RKE2 cluster. TrueNAS owns the bulk storage. The core services are GitLab, Harbor, NetBox, AdGuard, and the HAProxy pair. The A2000 passes through to one worker for Jellyfin transcoding.
 
 

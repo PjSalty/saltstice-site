@@ -19,7 +19,7 @@ The whole homelab runs on one used Dell R740xd. Writeups are in [Writing](/writi
 
 ## VMs
 
-17 VMs on the one hypervisor, about 168 GiB of 256 GiB allocated, the rest ZFS ARC and headroom. All run Debian 13 (Trixie), provisioned by Terraform (bpg/proxmox) off the VMID 9000 cloud template, cloud-init for first boot, Ansible after.
+{{< lab "vms_running" >}} VMs on the one hypervisor, about {{< lab "ram_allocated_gib" >}} GiB of {{< lab "ram_total_gib" >}} GiB allocated, the rest ZFS ARC and headroom. All run Debian 13 (Trixie), provisioned by Terraform (bpg/proxmox) off the VMID 9000 cloud template, cloud-init for first boot, Ansible after. The table lists the long-lived ones; the rest are a disposable test fleet for provider development.
 
 | VM | vCPU / RAM / Disk | Role |
 |---|---|---|
@@ -28,6 +28,8 @@ The whole homelab runs on one used Dell R740xd. Writeups are in [Writing](/writi
 | `harbor` | 4 / 8 / 100 | Container image registry |
 | `netbox` | 2 / 4 / 50 | DCIM + IPAM source of truth |
 | `adguard` | 2 / 2 / 32 | Internal DNS + ad blocking |
+| `adguard-2` | 2 / 2 / 32 | Second DNS node behind a keepalived VIP |
+| `unifi-os` | 4 / 8 / 64 | UniFi OS Server, network controller |
 | `haproxy-1/2` | 2 / 2 / 32 each | K8s API LB + keepalived VIP |
 | `ci-runner` | 4 / 8 / 50 | Dedicated GitLab runner |
 | `amp` | 4 / 16 / 200 | CubeCoders AMP control panel |
@@ -38,7 +40,7 @@ The whole homelab runs on one used Dell R740xd. Writeups are in [Writing](/writi
 
 ## Storage
 
-- **NAS**: TrueNAS SCALE 25.x on a bare VM. ZFS pool `tank`, RAIDZ2 on 6 TB drives, hot spare in the chassis. Datasets per workload: Postgres zvols on iSCSI, media on NFS with compression, S3 (in-cluster SeaweedFS) for backup objects.
+- **NAS**: TrueNAS SCALE {{< lab "truenas_version" >}} on a bare VM. ZFS pool `tank`, RAIDZ2 on 6 TB drives, hot spare in the chassis. Datasets per workload: Postgres zvols on iSCSI, media on NFS with compression, S3 (in-cluster SeaweedFS) for backup objects.
 - **K8s CSI**: truenas-csi, the official iX WebSocket-native driver. StorageClasses `truenas-iscsi` (RWO block, databases) and `nfs-client` (RWX file, everything else). NFS doesn't guarantee fsync across the network and Postgres needs it, so databases go on iSCSI ([postgres on iscsi]({{< relref "/posts/iscsi-block-storage-for-postgres.md" >}})).
 - **Backup**: Velero for K8s state, Kopia for VM-level, both to the in-cluster SeaweedFS S3 so backups don't depend on the same TrueNAS box.
 
@@ -46,7 +48,7 @@ The whole homelab runs on one used Dell R740xd. Writeups are in [Writing](/writi
 
 ![Network topology: internet through RB4011 and CRS317 into the R740xd, VLAN segments inside Proxmox](/diagrams/topology.svg)
 
-- **Router**: MikroTik RB4011iGS+, RouterOS 7.x. BGP peering with the cluster, primary firewall.
+- **Router**: MikroTik RB4011iGS+, RouterOS {{< lab "routeros_version" >}}. BGP peering with the cluster, primary firewall.
 - **Switches**: CRS317-1G-16S+ (10G aggregation, 16x SFP+) and CRS328-24P-4S+ (PoE access for APs and cameras).
 - **K8s API LB**: HAProxy + keepalived VIP across two VMs.
 

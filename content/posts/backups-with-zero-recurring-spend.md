@@ -7,7 +7,7 @@ types: ["build"]
 topics: ["Backup", "Storage", "Kubernetes"]
 ---
 
-Velero v1.17 with the Kopia uploader backs up the cluster to an in-cluster SeaweedFS S3 gateway. The SeaweedFS volumes persist over iSCSI to the NAS, and ZFS underneath handles durability. My constraint was zero recurring spend. Velero only needs an S3-compatible API, so I run that API myself on SeaweedFS.
+Velero v{{< lab "velero_version" >}} with the Kopia uploader backs up the cluster to an in-cluster SeaweedFS S3 gateway. The SeaweedFS volumes persist over iSCSI to the NAS, and ZFS underneath handles durability. My constraint was zero recurring spend. Velero only needs an S3-compatible API, so I run that API myself on SeaweedFS.
 
 A few choices I made:
 

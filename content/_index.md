@@ -5,4 +5,4 @@ description: Matt, a platform engineer writing up a homelab run as code, the bui
 
 I'm Matt, a platform engineer. I run a homelab on a single used Dell R740xd, all of it managed as code.
 
-This is where I write up what I build and what breaks. The whole platform is on [GitHub](https://github.com/PjSalty/saltstice-homelab), and I maintain a [TrueNAS provider](https://registry.terraform.io/providers/PjSalty/truenas/latest) on the Terraform registry.
+This is where I write up what I build and what breaks. The whole platform is on [GitHub](https://github.com/PjSalty/saltstice-homelab), and I maintain Terraform providers for [TrueNAS](https://registry.terraform.io/providers/PjSalty/truenas/latest) and [UniFi](https://registry.terraform.io/providers/PjSalty/unifi/latest) on the registry.

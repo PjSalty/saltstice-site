@@ -5,7 +5,7 @@ summary: A Terraform provider for TrueNAS SCALE on the public Registry, built on
 tags: [terraform, truenas, go, open-source]
 ---
 
-It's live on the [Terraform Registry](https://registry.terraform.io/providers/PjSalty/truenas/latest) as `PjSalty/truenas`, MPL-2.0. Current release is v2.1.
+It's live on the [Terraform Registry](https://registry.terraform.io/providers/PjSalty/truenas/latest) as `PjSalty/truenas`, MPL-2.0. Current release is {{< registry-version "truenas" >}}.
 
 ## What it does
 
