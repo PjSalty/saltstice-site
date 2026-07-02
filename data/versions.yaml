@@ -1,0 +1,6 @@
+# Fallback provider versions for the registry-version shortcode.
+# Used only when the Terraform Registry API is unreachable at build time;
+# CI builds fetch live values. Refresh these pins occasionally so an
+# offline build isn't wildly stale.
+truenas: 2.2.1
+unifi: 0.2.0

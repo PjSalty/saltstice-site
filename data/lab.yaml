@@ -1,0 +1,20 @@
+# Lab facts, the single source for every mutable number or version the
+# prose mentions. Prose references these via the `lab` shortcode:
+#   {{< lab "vms_running" >}}
+# Verified against the live lab (Proxmox, TrueNAS, MikroTik, image-versions
+# SSOT) on 2026-07-02. Until the cluster pushes this file itself, refreshing
+# it is one edit here instead of a hunt across pages.
+
+# counts
+vms_running: 22
+k8s_nodes: 6
+ram_allocated_gib: 228
+ram_total_gib: 256
+
+# versions of things the lab runs (from the image-versions SSOT and device APIs)
+truenas_version: "25.10.4"
+routeros_version: "7.23.1"
+rke2_version: "v1.35.4"
+velero_version: "1.17"
+traefik_chart: "39.0.6"
+truenas_csi_version: "v1.1.0"

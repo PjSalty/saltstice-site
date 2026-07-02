@@ -1,0 +1,16 @@
+{{- /* Renders the latest Terraform Registry release for a PjSalty provider,
+       fetched at build time. Usage: {{< registry-version "truenas" >}} -> v2.2.1
+       Falls back to data/versions.yaml when the registry is unreachable so
+       local/offline builds stay green. The Pages workflow rebuilds on a daily
+       schedule, which keeps the live site current without content commits. */ -}}
+{{- $name := .Get 0 -}}
+{{- $v := index site.Data.versions $name -}}
+{{- $url := printf "https://registry.terraform.io/v1/providers/PjSalty/%s" $name -}}
+{{- with try (resources.GetRemote $url) -}}
+  {{- with .Err -}}
+    {{- warnf "registry-version %q: %s (using fallback %s)" $name . $v -}}
+  {{- else with .Value -}}
+    {{- with (.Content | transform.Unmarshal).version -}}{{- $v = . -}}{{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- printf "v%s" $v -}}

@@ -1,0 +1,10 @@
+{{- /* Renders a lab fact from data/lab.yaml. Usage: {{< lab "vms_running" >}}
+       Unknown keys fail the build instead of rendering an empty string, so a
+       typo can't silently publish a hole in the prose. */ -}}
+{{- $key := .Get 0 -}}
+{{- $v := index site.Data.lab $key -}}
+{{- if eq $v nil -}}
+  {{- errorf "lab shortcode: key %q not found in data/lab.yaml (page %s)" $key .Page.Path -}}
+{{- else -}}
+  {{- $v -}}
+{{- end -}}

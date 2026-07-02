@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # Daily rebuild so build-time registry-version lookups stay current
+    # without content commits.
+    - cron: "17 9 * * *"
 
 permissions:
   contents: read
