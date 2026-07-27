@@ -15,7 +15,7 @@ The whole homelab runs on one used Dell R740xd. Writeups are in [Writing](/writi
 - **Boot/VM pool**: ZFS mirror of two SSDs, checksums self-heal on scrub.
 - **GPU**: NVIDIA RTX A2000, PCIe passthrough to `k8s-worker-1` for Jellyfin NVENC.
 - **PSUs**: 2x redundant, both lines hot.
-- **UPS**: Tripp Lite SMART1500LCD, 1500VA / 900W, monitored over USB with NUT (`tripplite_usb`). Roughly 10-15 minutes at 300W steady-state. The shutdown cascade is designed, deploy pending.
+- **UPS**: Tripp Lite SMART1500LCD, 1500VA / 900W, monitored over USB with NUT (`tripplite_usb`).
 
 ## VMs
 
