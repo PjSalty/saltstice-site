@@ -13,7 +13,7 @@ ram_total_gib: 256
 
 # versions of things the lab runs (from the image-versions SSOT and device APIs)
 truenas_version: "25.10.4"
-routeros_version: "7.23.1"
+routeros_version: "7.23.x"
 rke2_version: "v1.35.4"
 velero_version: "1.17"
 traefik_chart: "39.0.6"
