@@ -7,7 +7,9 @@ types: ["build"]
 topics: ["Authentik", "Security"]
 ---
 
-Every service in my homelab authenticates through one Authentik instance. 22 applications speak OIDC directly: Proxmox, TrueNAS, GitLab, Harbor, Grafana, Jellyfin, NetBox, and the rest. The handful that can't speak OIDC, status dashboards and a couple of admin UIs, get Traefik forward-auth through Authentik proxy providers. I authenticate once and hit MFA once, and session revocation and the audit log both live in one place.
+Every service in my homelab authenticates through one Authentik instance. 22 applications speak OIDC directly: Proxmox, TrueNAS, GitLab, Harbor, Grafana, Jellyfin, NetBox, and the rest. The handful that can't speak OIDC, internal status dashboards and a couple of admin UIs, get Traefik forward-auth through Authentik proxy providers. I authenticate once and hit MFA once, and session revocation and the audit log both live in one place.
+
+One deliberate exception: the public status page is anonymous. It's a read-only overview dashboard behind a rate limit, and putting a login in front of a status page defeats the point of having one.
 
 Two API lessons from building it:
 
