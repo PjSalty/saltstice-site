@@ -19,7 +19,7 @@ One binary, Windows or Linux. On first run it:
 2. Points the Battle.net gateway at the realm by writing one `HKEY_CURRENT_USER` registry value. No admin rights. On Linux the same write goes into a self-contained Wine prefix that never touches the user's own `~/.wine`.
 3. Launches the game.
 
-Later runs skip straight to launch. On Linux it detects the distro, offers to install Wine with the exact command, and renders through DXVK because Wine's default D3D path crashes the game on some GPUs. Build a server address in at compile time and the same code points wherever you point it.
+Later runs skip straight to launch. On Linux it detects the distro, offers to install Wine with the exact command, and renders through DXVK because Wine's default D3D path crashes the game on some GPUs. The server address comes from config at run time, so the same build points wherever you point it.
 
 That part is plumbing. The hosting is the part worth writing down.
 
@@ -57,6 +57,6 @@ Nothing here is specific to my group. If you want the same thing:
 
 - Stand up PvPGN on a box with a public IP (a small VPS is plenty). Forward the realm ports and a pool of game ports to it.
 - Run the relay next to it. It's a single Go binary. Terminate TLS on it, gate it with a shared token so only your launcher can open a tunnel, and cap sessions per IP so an open port on the internet can't be used to exhaust it.
-- Build the launcher with your server's address, token, and the relay's certificate pin injected at compile time. None of those live in the source, so the repo stays clean and the built binary is what carries them.
+- Keep the launcher build generic and feed it the server address, token, and certificate pin at run time, from a first-run prompt, a flag, an env var, or a config file. Compiling them in is tempting because the repo stays clean, but the binary is the thing you hand out: anyone who gets a copy runs `strings` on it and has your token. Build-time injection moves the secret out of git and into the artifact you distribute most widely, which is the wrong direction.
 
 Give your friends the binary. They click it once. That was the whole goal.
