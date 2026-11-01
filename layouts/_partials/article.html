@@ -8,14 +8,14 @@
     <h1>{{ .Title }}</h1>
     {{- with .Params.summary | default .Description }}<p class="lede">{{ . }}</p>{{ end }}
     {{- if $inc }}
-    {{- $heads := slice }}{{ range .Fragments.Headings }}{{ $heads = $heads | append . }}{{ end }}
     {{- $root := "" }}{{ $fix := "" }}
-    {{- range $heads }}{{ $lt := lower .Title }}{{ if and (not $root) (findRE `root cause|why ` $lt) }}{{ $root = . }}{{ end }}{{ if and (not $fix) (findRE `fix|what i changed|what i did` $lt) }}{{ $fix = . }}{{ end }}{{ end }}
+    {{- range slice "root-cause" "why-it-deadlocks" "why-it-hid" "why-it-stayed-hidden" }}{{ if and (not $root) ($.Fragments.Identifiers.Contains .) }}{{ $root = . }}{{ end }}{{ end }}
+    {{- range slice "fix" "the-fix" "what-i-changed" "what-i-did" }}{{ if and (not $fix) ($.Fragments.Identifiers.Contains .) }}{{ $fix = . }}{{ end }}{{ end }}
     <dl class="pm">
       <div><dt>Date</dt><dd>{{ .Date.Format "2006-01-02" }}</dd></div>
       <div><dt>Areas</dt><dd>{{ range .Params.topics }}<span class="tag">{{ . }}</span>{{ end }}</dd></div>
       <div><dt>Read</dt><dd>{{ .ReadingTime }} min</dd></div>
-      <div><dt>Path</dt><dd><ol class="path"><li><a href="#main">Symptom</a></li>{{ with $root }}<li><a href="#{{ .ID }}">Cause</a></li>{{ end }}{{ with $fix }}<li><a href="#{{ .ID }}">Fix</a></li>{{ end }}</ol></dd></div>
+      <div><dt>Path</dt><dd><ol class="path"><li><a href="#main">Symptom</a></li>{{ with $root }}<li><a href="#{{ . }}">Cause</a></li>{{ end }}{{ with $fix }}<li><a href="#{{ . }}">Fix</a></li>{{ end }}</ol></dd></div>
     </dl>
     {{- else }}
     <div class="art-cover">{{ partial "cover.html" . }}</div>

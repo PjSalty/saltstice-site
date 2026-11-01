@@ -36,10 +36,10 @@
   <circle class="{{ if eq . 2 }}ac{{ else }}fl{{ end }}" cx="{{ printf "%.1f" (add $cx (mul $rad (math.Cos $a))) }}" cy="{{ printf "%.1f" (add 90 (mul $rad (math.Sin $a))) }}" r="4"/>{{ end }}
 {{- else if eq $m "trace" }}
   {{- $s := add 10 (mod (index $r 0) 22) }}{{ $pts := "" }}
-  {{- range seq 0 39 }}{{ $y := sub 118 (mod (index $r (add . 1)) 12) }}{{ if eq . $s }}{{ $y = sub 118 (add 55 (mod (index $r 45) 30)) }}{{ else if eq . (add $s 1) }}{{ $y = add 128 (mod (index $r 46) 12) }}{{ end }}{{ $pts = printf "%s%d,%d " $pts (add 10 (mul . 7)) $y }}{{ end }}
+  {{- range seq 0 39 }}{{ $y := sub 118 (mod (index $r (add . 1)) 12) }}{{ if eq . $s }}{{ $y = sub 118 (add 40 (mod (index $r 45) 24)) }}{{ else if eq . (add $s 1) }}{{ $y = add 128 (mod (index $r 46) 12) }}{{ end }}{{ $pts = printf "%s%d,%d " $pts (add 10 (mul . 7)) $y }}{{ end }}
   <path class="ln dash" d="M{{ add 10 (mul $s 7) }} 20V160"/>
   <polyline class="tr" points="{{ $pts }}"/>
-  <circle class="ac" cx="{{ add 10 (mul $s 7) }}" cy="{{ sub 118 (add 55 (mod (index $r 45) 30)) }}" r="5"/>
+  <circle class="ac" cx="{{ add 10 (mul $s 7) }}" cy="{{ sub 118 (add 40 (mod (index $r 45) 24)) }}" r="5"/>
 {{- else }}
   {{- range seq 0 7 }}{{ $y := add 24 (mul . 18) }}{{ $ind := mul (mod (index $r .) 3) 16 }}
   <rect class="fl dim" x="22" y="{{ add $y 1 }}" width="8" height="5" rx="2"/>

@@ -183,7 +183,7 @@
 .reach p{color:var(--fg2);max-width:60ch}
 .reach a:not(.btn){color:var(--fg)}
 .lost{padding-block:96px 40px;max-width:760px}
-.lost .code{font:600 clamp(4rem,12vw,8rem)/1 var(--mono);letter-spacing:-.06em;color:var(--acc)}
+.lost .big{font:600 clamp(4rem,12vw,8rem)/1 var(--mono);letter-spacing:-.06em;color:var(--acc)}
 .lost h1{font:400 clamp(1.8rem,3vw,2.6rem)/1.1 var(--serif);margin:14px 0 12px}
 .lost p{color:var(--fg2)}
 .lost .cta{margin-top:24px}
