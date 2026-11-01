@@ -1,0 +1,5 @@
+{{- /* Node chips for one view. Pass dict: v, P, N. */ -}}
+{{- $v := .v }}{{ $N := .N }}
+{{- range $id, $p := .P }}{{ $n := index $N $id }}
+<g class="hd-chip k-{{ $n.kind }}" id="hdn-{{ $v }}-{{ $id }}" data-id="{{ $id }}"><rect x="{{ index $p 0 }}" y="{{ index $p 1 }}" width="{{ index $p 2 }}" height="{{ index $p 3 }}" rx="8"/><text x="{{ add (index $p 0) 14 }}" y="{{ add (index $p 1) 25 }}">{{ $n.label }}</text><title>{{ $n.label }}: {{ $n.role }}</title></g>
+{{- end }}

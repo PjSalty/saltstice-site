@@ -336,3 +336,30 @@
 .hdia{width:100%;height:auto}
 .hdia-m .hd-chip text{font-size:12px}
 @media (max-width:1300px){.band::after{display:none}}
+
+/* hero views */
+.hd-views{display:inline-flex;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:16px}
+.hd-views button{font:500 .78rem var(--sans);padding:7px 14px;border:0;background:var(--bg);color:var(--fg2);cursor:pointer;transition:background .15s,color .15s}
+.hd-views button:hover{color:var(--fg);background:var(--bg3)}
+.hd-views button[aria-pressed=true]{background:var(--inv);color:var(--inv-ink)}
+.hd-stage{position:relative}
+.hdia{display:none;transform:perspective(1400px) rotateY(calc(var(--px,0) * 1.4deg)) rotateX(calc(var(--py,0) * -1deg));transition:transform .4s ease-out}
+.hdia.is-on{display:block;animation:vfade .3s ease-out}
+@keyframes vfade{from{opacity:0}}
+.hdia-d,.hdia-m{}
+@media (max-width:760px){.hdia-d,.hdia-m{display:none}.hdia-m.is-on{display:block}.hd-stage{overflow-x:auto}.hdia-r.is-on,.hdia-s.is-on,.hdia-c.is-on{min-width:820px}}
+@media (min-width:761px){.hdia-m{display:none!important}}
+.hd-tile rect{fill:color-mix(in srgb,var(--fg) 3%,transparent);stroke:var(--line2);stroke-width:1}
+.hd-tile-c rect{stroke-dasharray:5 5}
+.hd-plane path{fill:color-mix(in srgb,var(--fg) 5%,transparent);stroke:var(--line2);stroke-width:1}
+.hd-guide{fill:none;stroke:var(--line2);stroke-width:1;stroke-dasharray:3 5}
+.hd-iso path{stroke:var(--fg3);stroke-width:1}
+.hd-iso .top{fill:color-mix(in srgb,var(--fg) 14%,var(--bg))}.hd-iso .right{fill:color-mix(in srgb,var(--fg) 7%,var(--bg))}.hd-iso .left{fill:color-mix(in srgb,var(--fg) 3%,var(--bg))}
+.hd-line{fill:none;stroke:var(--fg3);stroke-width:4;stroke-linecap:round}
+.hd-line.hl-https{stroke-width:5}.hd-line.hl-http{stroke-dasharray:10 6}.hd-line.hl-sql,.hd-line.hl-redis{stroke-dasharray:2 7}
+.hd-st circle{fill:var(--bg);stroke:var(--fg2);stroke-width:3}.hd-st.ix circle{r:11;stroke:var(--fg);stroke-width:4}
+.hd-st text{font:500 13px var(--sans);fill:var(--fg)}
+.hd-st.on circle{fill:var(--fg);filter:drop-shadow(0 0 8px var(--fg))}
+.hd-tick{min-height:1.4em;margin-top:6px;padding-inline:var(--gut);font:500 .74rem var(--mono);color:var(--fg3)}
+.hdia-r .hd-chip rect,.hdia-c .hd-chip rect{fill:var(--bg)}
+@media (prefers-reduced-motion:reduce){.hdia{transform:none!important;transition:none}.hdia.is-on{animation:none}}
