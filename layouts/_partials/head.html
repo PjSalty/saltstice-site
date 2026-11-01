@@ -19,6 +19,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="{{ .Permalink }}">
 {{- end }}
+<meta name="live-endpoint" content="{{ site.Params.telemetry.endpoint }}">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 {{- with .OutputFormats.Get "rss" }}

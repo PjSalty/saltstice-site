@@ -6,7 +6,6 @@
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var phone = window.matchMedia('(max-width: 760px)');
   var cv = root.querySelector('.hd-fx'), cap = root.querySelector('.hd-cap-t'), tick = root.querySelector('.hd-tick');
-  var NAMES = { graph: 'd', rack: 'r', cluster: 'c', subway: 's' };
   function el(n, a, p) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
   var STY = {
     https: { g: [1.3, 3.6], len: 14, v: 190, w: 2.2 }, http: { g: [1.5, 4], len: 12, v: 170, w: 2 }, bgp: { g: [4, 8], len: 0, v: 70, w: 3.4, both: 1 },
@@ -18,7 +17,7 @@
   var svg, V, VW = 1200, VH = 600, VY = 0, links = [], byId = {}, paths = [], timers = [], pi = 0;
   var parts = [], amb = 1, raf = 0, last = 0, col = '#ededed', n = 0, vis = true, tracing = false, view = 'd';
   function rnd(r) { return r[0] + Math.random() * (r[1] - r[0]); }
-  function eff(v) { return phone.matches && (v === 'd' || v === 'c') ? 'm' : v; }
+  function eff() { return phone.matches ? 'm' : 'd'; }
   function sz() {
     var dpr = Math.min(window.devicePixelRatio || 1, 2), w = svg.clientWidth, h = svg.clientHeight;
     cv.style.width = w + 'px'; cv.style.height = h + 'px';
@@ -96,11 +95,10 @@
     if (!reduce) timers.push(setTimeout(function () { pi = (pi + 1) % paths.length; run(paths[pi]); }, p.hops.length * (DUR + 150) + 2200));
   }
   function setView(v, save) {
-    view = v; V = eff(v);
+    view = v; V = eff();
     if (svg) clear();
     [].forEach.call(root.querySelectorAll('.hdia'), function (s) { s.classList.toggle('is-on', s.classList.contains('hdia-' + V)); });
-    [].forEach.call(root.querySelectorAll('.hd-views button'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-view') === v ? 'true' : 'false'); });
-    svg = root.querySelector('.hdia-' + V);
+      svg = root.querySelector('.hdia-' + V);
     var vb = svg.viewBox.baseVal; VW = vb.width; VH = vb.height; VY = vb.y;
     byId = {}; parts = [];
     links = [].slice.call(svg.querySelectorAll('.hl')).map(function (p) {
@@ -109,11 +107,9 @@
     });
     paths = allPaths.map(function (p) { return { id: p.id, label: p.label, hops: p.hops.filter(function (h) { return chip(p.id, h.n); }) }; }).filter(function (p) { return p.hops.length > 1; });
     pi = 0; sz();
-    if (save) { try { localStorage.setItem('hview', v); } catch (e) {} }
     if (paths.length) run(paths[0]);
     applyLive();
   }
-  [].forEach.call(root.querySelectorAll('.hd-views button'), function (b) { b.addEventListener('click', function () { setView(b.getAttribute('data-view'), true); }); });
 
   // live cluster numbers, shared by all views; nothing is shown unless the API answers
   var ep = root.getAttribute('data-endpoint'), stat = parseInt(root.getAttribute('data-k8s-static'), 10) || 0, live = null, prevLive = null, msgs = [];
@@ -152,12 +148,9 @@
     var r = root.getBoundingClientRect();
     root.style.setProperty('--px', (((e.clientX - r.left) / r.width) * 2 - 1).toFixed(2)); root.style.setProperty('--py', (((e.clientY - r.top) / r.height) * 2 - 1).toFixed(2));
   });
-  var rt; function re() { clearTimeout(rt); rt = setTimeout(function () { if (eff(view) !== V) setView(view); else sz(); }, 120); }
+  var rt; function re() { clearTimeout(rt); rt = setTimeout(function () { if (eff() !== V) setView('d'); else sz(); }, 120); }
   if ('ResizeObserver' in window) new ResizeObserver(re).observe(root); else window.addEventListener('resize', re);
-  var want = (location.search.match(/[?&]view=(\w+)/) || [])[1], saved = null;
-  try { saved = localStorage.getItem('hview'); } catch (e) {}
-  var start = NAMES[want] || (saved && 'drcs'.indexOf(saved) >= 0 ? saved : 'd');
-  setView(start, !!NAMES[want]);
+  setView('d');
   poll(); setInterval(function () { if (!document.hidden) poll(); }, 60000);
   loop(true);
 })();

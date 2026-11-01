@@ -24,6 +24,8 @@
 {{- $aj := resources.Get "js/arch.js" | minify | fingerprint }}
 <script src="{{ $aj.RelPermalink }}" integrity="{{ $aj.Data.Integrity }}" defer></script>
 {{- end }}
+{{- $lj := resources.Get "js/live.js" | minify | fingerprint }}
+<script src="{{ $lj.RelPermalink }}" integrity="{{ $lj.Data.Integrity }}" defer></script>
 {{- block "scripts" . }}{{ end }}
 </body>
 </html>

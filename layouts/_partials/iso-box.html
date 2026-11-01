@@ -1,7 +1,0 @@
-{{- /* Isometric slab. Pass x y (front-bottom corner), w d h. Faces: top, left, right. */ -}}
-{{- $x := float .x }}{{ $y := float .y }}{{ $h := float .h }}{{ $rx := mul (float .w) 0.866 }}{{ $ry := mul (float .w) 0.5 }}{{ $lx := mul (float .d) 0.866 }}{{ $ly := mul (float .d) 0.5 }}
-<g class="hd-iso">
-<path class="top" d="M{{ printf "%.0f %.0f" $x (sub $y $h) }}L{{ printf "%.0f %.0f" (add $x $rx) (sub (sub $y $h) $ry) }}L{{ printf "%.0f %.0f" (add (add $x $rx) (sub 0.0 $lx)) (sub (sub (sub $y $h) $ry) $ly) }}L{{ printf "%.0f %.0f" (sub $x $lx) (sub (sub $y $h) $ly) }}Z"/>
-<path class="right" d="M{{ printf "%.0f %.0f" $x $y }}L{{ printf "%.0f %.0f" (add $x $rx) (sub $y $ry) }}L{{ printf "%.0f %.0f" (add $x $rx) (sub (sub $y $ry) $h) }}L{{ printf "%.0f %.0f" $x (sub $y $h) }}Z"/>
-<path class="left" d="M{{ printf "%.0f %.0f" $x $y }}L{{ printf "%.0f %.0f" (sub $x $lx) (sub $y $ly) }}L{{ printf "%.0f %.0f" (sub $x $lx) (sub (sub $y $ly) $h) }}L{{ printf "%.0f %.0f" $x (sub $y $h) }}Z"/>
-</g>
