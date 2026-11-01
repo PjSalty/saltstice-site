@@ -72,7 +72,7 @@ h2:hover .anchor,h3:hover .anchor,h4:hover .anchor,.anchor:focus{opacity:1}
 .callout-t{font:700 .7rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--c);margin-bottom:6px}
 .callout>*+*{margin-top:.6em}
 
-@media (max-width:700px){.prose table{display:block;overflow-x:auto}}
+@media (max-width:700px){.prose table{display:block;overflow-x:auto}.prose th,.prose td{white-space:nowrap}}
 
 /* code */
 .code{border:1px solid var(--line);border-radius:10px;background:var(--code-bg);overflow:hidden}

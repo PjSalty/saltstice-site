@@ -15,7 +15,8 @@
   <p class="density-cap"><span>{{ index $months 0 }}</span><span>{{ index $months 11 }}</span></p>
 </header>
 <div class="wrap">
-  <ul class="icards">{{ range $inc.ByDate.Reverse }}{{ partial "icard.html" . }}{{ end }}</ul>
+  {{- $p := .Paginate $inc.ByDate.Reverse 40 }}
+  <ul class="icards">{{ range $p.Pages }}{{ partial "icard.html" . }}{{ end }}</ul>
 </div>
 {{- end }}
 

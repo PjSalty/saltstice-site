@@ -5,7 +5,7 @@
 :root{
   --bg:#f4f1ea;--bg2:#fbfaf6;--bg3:#ebe7dd;--line:#dcd7ca;--line2:#c4bead;
   --fg:#14181a;--fg2:#434b4e;--fg3:#5a6366;--prose:#1e2427;
-  --acc:#c2410c;--acc-ink:#fff;--cool:#0b6a8a;--ok:#0f7a4a;--warn:#8a5a00;--crit:#b42318;
+  --acc:#b8380a;--acc-ink:#fff;--cool:#0b6a8a;--ok:#0c6e41;--warn:#8a5a00;--crit:#b42318;
   --code-bg:#eeebe2;--grid:rgba(20,24,26,.06);
   --syn-kw:#b3360a;--syn-str:#1c6b3c;--syn-num:#8a5a00;--syn-com:#5c676a;--syn-fn:#0b6a8a;--syn-ty:#7a3d9a;
   --sans:Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -111,3 +111,11 @@ button{font:inherit;color:inherit}
 .to-top[hidden]{display:none}
 @media (max-width:760px){.foot{grid-template-columns:1fr 1fr}.foot-about{grid-column:1/-1}.site-footer{margin-top:64px}}
 @media (max-width:520px){:root{--gut:16px}}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .btn:hover,.pcard:hover,.proj:hover,.icard:hover{transform:none!important}
+  .progress{display:none!important}
+  .js.nav-open .nav{animation:none}
+}
+.pcard:focus-within,.proj:focus-within,.icard:focus-within,.row:focus-within h3 a{border-color:var(--acc);color:inherit}
