@@ -217,3 +217,10 @@ h1, h2, h3, h4 { line-height: 1.25; letter-spacing: -.01em; }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 @media print { .site-header, .site-footer, .theme-toggle, .copy-code, .to-top, .toc { display: none; } body { background: #fff; color: #000; } }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 560px) {
+  .site-header .wrap { gap: .1rem .5rem; }
+  .brand { order: 1; margin-right: auto; }
+  .theme-toggle { order: 2; }
+  .site-header nav { order: 3; width: 100%; }
+}
+.prose .anchor::before { content: "#"; }

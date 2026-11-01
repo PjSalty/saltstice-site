@@ -1,7 +1,7 @@
 {{- $idx := slice }}
 {{- range site.RegularPages }}
   {{- if and (not .Params.searchHidden) (ne .Layout "archives") (ne .Layout "search") }}
-    {{- $idx = $idx | append (dict "title" .Title "content" .Plain "permalink" .Permalink "summary" .Summary "section" .Section "tags" (.Params.tags | default slice)) }}
+    {{- $idx = $idx | append (dict "title" .Title "content" (.Plain | htmlUnescape) "permalink" .Permalink "summary" (.Summary | plainify | htmlUnescape) "section" .Section "tags" (.Params.tags | default slice)) }}
   {{- end }}
 {{- end }}
 {{- $idx | jsonify -}}

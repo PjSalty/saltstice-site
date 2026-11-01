@@ -39,7 +39,7 @@
   <!-- VLAN 20 -->
   <rect class="box" x="60" y="208" width="390" height="146" stroke="#89b4fa"/>
   <text class="tag" x="72" y="226" fill="#89b4fa">VLAN 20 · infrastructure</text>
-  <rect class="node" x="72" y="238" width="86" height="30"/><text class="lbl" x="115" y="257" text-anchor="middle">gitlab</text>
+  <rect class="node" x="72" y="238" width="86" height="30"/><text class="lbl" x="115" y="257" text-anchor="middle">git</text>
   <rect class="node" x="166" y="238" width="86" height="30"/><text class="lbl" x="209" y="257" text-anchor="middle">harbor</text>
   <rect class="node" x="260" y="238" width="86" height="30"/><text class="lbl" x="303" y="257" text-anchor="middle">netbox</text>
   <rect class="node" x="354" y="238" width="86" height="30"/><text class="lbl" x="397" y="257" text-anchor="middle">adguard</text>
