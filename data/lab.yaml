@@ -1,20 +1,23 @@
 # Lab facts, the single source for every mutable number or version the
 # prose mentions. Prose references these via the `lab` shortcode:
 #   {{< lab "vms_running" >}}
-# Verified against the live lab (Proxmox, TrueNAS, MikroTik, image-versions
-# SSOT) on 2026-07-02. Until the cluster pushes this file itself, refreshing
-# it is one edit here instead of a hunt across pages.
+# Verified against the live lab (Proxmox VM list, Kubernetes node status,
+# image-versions SSOT, TrueNAS system info, RouterOS resources) on
+# 2026-11-01. Until the cluster pushes this file itself, refreshing it is
+# one edit here instead of a hunt across pages.
 
 # counts
-vms_running: 22
-k8s_nodes: 6
-ram_allocated_gib: 228
+vms_running: 23          # includes autoscaled CI nodes and a few test guests
+k8s_nodes: 6             # static nodes: 3 control plane, 3 workers
+k8s_ci_nodes: 3          # Karpenter ci-pool nodes alive on 2026-11-01, comes and goes
+ram_allocated_gib: 238   # sum of maxmem of running guests, includes the CI nodes
 ram_total_gib: 256
 
 # versions of things the lab runs (from the image-versions SSOT and device APIs)
 truenas_version: "25.10.4"
-routeros_version: "7.23.x"
-rke2_version: "v1.35.4"
-velero_version: "1.17"
+routeros_version: "7.23.1"   # the RB4011 router; verified 2026-11-01
+rke2_version: "v1.36.3+rke2r1"
+# Read from the manifests in the cluster repo on 2026-11-01 (csi v1.3.0), Velero and Traefik carried over:
+velero_version: "1.18"
 traefik_chart: "39.0.6"
-truenas_csi_version: "v1.1.0"
+truenas_csi_version: "v1.3.0"

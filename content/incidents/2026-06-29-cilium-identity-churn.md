@@ -3,6 +3,8 @@ title: "Identity churn took the cluster down, and the CNI looked fine"
 date: 2026-06-29
 summary: "Pod creation stopped cluster-wide. Kyverno's fail-closed webhook was the wall, but Cilium quietly churning security identities was the hand that pushed it, and cilium status read OK the whole time."
 tags: [postmortem, cilium, kubernetes, kyverno, networking]
+types: ["incident"]
+slug: 2026-06-29-cilium-identity-churn
 ---
 
 I went to scan a media folder and the throwaway pod wouldn't start. The

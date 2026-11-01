@@ -3,6 +3,8 @@ title: "The glibc A/AAAA conntrack race that killed my Postgres connections"
 date: 2026-07-14
 summary: "Jellyfin threw 500s on artwork under load. The driver wasn't broken and Postgres was fine. glibc firing the A and AAAA lookups in parallel over one socket collided on a conntrack DNAT tuple, one packet got dropped, the resolver returned EAGAIN, and it killed the connection open mid-flight. The fix was three resolver tweaks, not code."
 tags: [postmortem, jellyfin, dns, postgres, kubernetes]
+types: ["incident"]
+slug: 2026-07-14-glibc-aaaa-conntrack-postgres
 ---
 
 Jellyfin started throwing 500s on `/Items/*/Images` whenever the library

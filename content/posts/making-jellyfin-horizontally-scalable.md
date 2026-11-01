@@ -5,11 +5,12 @@ summary: "Postgres removed the SQLite single writer. It didn't remove the dozen 
 tags: [jellyfin, kubernetes, postgres, rffmpeg, gpu]
 types: ["build"]
 topics: ["Jellyfin", "Kubernetes", "Database", "Storage"]
+slug: making-jellyfin-horizontally-scalable
 ---
 
 Moving Jellyfin onto Postgres killed the SQLite single writer. It did not make Jellyfin horizontally scalable. Those are different problems, and the space between them is a pile of assumptions the code makes about being the only process alive.
 
-The [Postgres and Valkey backend](/posts/jellyfin-postgres-valkey-cache/) is the floor: shared truth, shared cache, no more one-writer file lock. Above it, the moment two Jellyfins share one database they start fighting over things neither knows the other exists. What follows is every one of those fights and what it cost to end it.
+The [Postgres and Valkey backend](/posts/jellyfin-on-postgres-with-a-valkey-second-level-cache/) is the floor: shared truth, shared cache, no more one-writer file lock. Above it, the moment two Jellyfins share one database they start fighting over things neither knows the other exists. What follows is every one of those fights and what it cost to end it.
 
 ## One leader, N replicas
 

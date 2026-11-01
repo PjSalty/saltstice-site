@@ -1,4 +1,4 @@
 ---
 title: Projects
-description: Open-source work I've shipped publicly.
+description: Open-source work I maintain.
 ---

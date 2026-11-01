@@ -3,6 +3,8 @@ title: "Moving Cilium under Flux deadlocked the cluster"
 date: 2026-04-27
 summary: "Moving RKE2's bundled Cilium onto a Flux HelmRelease deadlocks the cluster. source-controller can't fetch the chart without the pod network Cilium provides, and cleanupOnFail deletes the half-applied release mid-cutover. That leaves a window with no CNI and nothing able to schedule the fix."
 tags: [postmortem, cilium, kubernetes, flux, networking]
+types: ["incident"]
+slug: 2026-04-27-flux-managed-cilium-deadlock
 ---
 
 The rollback plan was the outage. I wanted Cilium off RKE2's bundled

@@ -3,6 +3,7 @@ title: "Jellyfin on Postgres with a Valkey second-level cache"
 date: 2026-07-11
 summary: "Zero server patches: the DB provider plugin seam takes an EF Core cache interceptor. An overlay repo keeps it rebaseable, and one smoke test found eight real bugs before prod ever saw it."
 tags: [jellyfin, postgres, valkey, ef-core, kubernetes, ci]
+types: ["build"]
 ---
 
 Jellyfin keeps everything in SQLite, which makes it a forced singleton: one

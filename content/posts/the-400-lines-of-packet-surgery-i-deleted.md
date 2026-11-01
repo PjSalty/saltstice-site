@@ -5,6 +5,7 @@ summary: "The first design pinned a hosted game's advertised address by editing 
 tags: [warcraft-3, pvpgn, networking, go]
 types: ["build"]
 topics: ["Networking", "Go"]
+slug: the-400-lines-of-packet-surgery-i-deleted
 ---
 
 The [one-click Warcraft III launcher](https://github.com/PjSalty/wc3-launcher) has a footnote in its architecture doc: the first working design pinned a hosted game's address by rewriting the realm protocol in flight, then got deleted whole. This is that footnote at full length. It's the better story, and a clean case of the clever design losing to the boring one.

@@ -1,8 +1,15 @@
 ---
 title: Salty
-description: Matt, a platform engineer writing up a homelab run as code, the builds and the things that break.
+description: Platform engineer. Notes on running a production homelab as code.
+featured:
+  - /incidents/2026-04-17-full-site-power-loss
+  - /posts/disabling-kube-proxy-under-cilium
+  - /posts/credential-rotation-as-a-pipeline
+  - /posts/split-horizon-dns-for-a-homelab
+  - /posts/backups-with-zero-recurring-spend
+  - /posts/shipping-a-terraform-provider
 ---
 
-I'm Matt, a platform engineer. I run a homelab on a single used Dell R740xd, all of it managed as code.
+Platform engineer. I run a homelab on one used Dell R740xd: Proxmox, an RKE2 cluster with autoscaled CI nodes, Cilium, Flux, Terraform, Ansible, SOPS, Velero and TrueNAS. All of it as code.
 
-This is where I write up what I build and what breaks. The whole platform is on [GitHub](https://github.com/PjSalty/saltstice-homelab), and I maintain Terraform providers for [TrueNAS](https://registry.terraform.io/providers/PjSalty/truenas/latest) and [UniFi](https://registry.terraform.io/providers/PjSalty/unifi/latest) on the registry.
+The [writing](/writing/) is builds, runbooks and postmortems. The [lab](/lab/) page is the hardware and stack, and [telemetry](/telemetry/) links to its live state. The repo is [saltstice-homelab](https://github.com/PjSalty/saltstice-homelab), and there's a [TrueNAS Terraform provider](https://registry.terraform.io/providers/PjSalty/truenas/latest) on the registry.

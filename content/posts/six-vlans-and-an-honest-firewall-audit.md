@@ -14,7 +14,7 @@ The whole homelab hangs off one MikroTik RB4011 and two CRS switches, split into
 | VLAN | Subnet | What lives there |
 |---|---|---|
 | 1 management | <mgmt-ip>/24 | router, switches, BMC |
-| 20 infrastructure | <vlan-cidr> | GitLab, Harbor, NetBox, DNS, HAProxy pair, CI runner |
+| 20 infrastructure | <vlan-cidr> | Git forge, Harbor, NetBox, DNS, HAProxy pair, CI runner |
 | 30 kubernetes | <vlan-cidr> | RKE2 nodes |
 | 40 storage | <vlan-cidr> | NAS, iSCSI and NFS traffic |
 | 50 applications | <vlan-cidr> | ingress VIPs, user-facing services |
