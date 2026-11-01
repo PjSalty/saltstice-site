@@ -41,10 +41,6 @@ Rules are first-match-wins, so the exclusion goes above the branch rule:
 
 The drift job keeps its own schedule rule. I checked it by parsing the merged YAML, and the merge's own child pipeline emitted only a no-changes job, with no plan and no apply, because nothing under a `.tf` root had changed.
 
-## Same bug, not fixed yet
-
-Three state-repair jobs gate on the commit message containing a marker like `[fix-harbor-state]`. On a schedule that variable holds the tip commit's message, so a schedule would re-run state surgery if the last merge happened to carry one. Nothing in the last 20 commits did, so it isn't armed. It is the same shape of bug, and I'm listing it here because I haven't fixed it.
-
 ## How I found it
 
 "The schedule ran" was a hypothesis. To turn it into a finding I followed the pipeline's bridge to the child pipeline, then listed the child's jobs and read their names. `terraform:apply` on the Proxmox root is a different sentence from "a schedule fired".

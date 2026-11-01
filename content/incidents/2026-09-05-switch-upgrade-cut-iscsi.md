@@ -16,7 +16,7 @@ My first write-up blamed the switch's new weekly self-upgrade scheduler. The swi
 
 The mechanism is the same either way. An uplink outage longer than `node.session.timeo.replacement_timeout` makes the initiator give up on the session, and the filesystems above it start failing writes.
 
-The weekly scheduler is a real risk anyway. The other switch is the only path between the host uplinks and the router, so its restart severs every inter-VLAN path, iSCSI and NFS included. I decided to leave the schedulers on. The change I'm carrying instead is raising the replacement timeout on all six nodes above a switch boot, with a 600 second floor, plus alerts on ext4 error counts and iSCSI session state.
+The weekly scheduler is a real risk anyway. The other switch is the only path between the host uplinks and the router, so its restart severs every inter-VLAN path, iSCSI and NFS included. I left the schedulers on. The fix belongs on the node side: a replacement timeout longer than a switch boot, and alerts on ext4 error counts and iSCSI session state.
 
 ## Recovery without a restore
 
