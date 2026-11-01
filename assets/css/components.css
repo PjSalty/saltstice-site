@@ -444,3 +444,5 @@
 .hx-path{stroke:var(--acc);stroke-width:2;fill:none;stroke-dasharray:5 7;animation:flow 1.6s linear infinite;opacity:.9}
 .hx-pkt{fill:var(--acc);filter:drop-shadow(0 0 5px var(--acc))}
 @media (prefers-reduced-motion:reduce){.hx-path{animation:none}.hx-pkt{display:none}}
+
+@media (max-width:640px){.hx text{display:none}}

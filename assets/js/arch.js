@@ -171,7 +171,7 @@
   if ('ResizeObserver' in window) new ResizeObserver(relayout).observe(canvas); else window.addEventListener('resize', relayout);
 
   size();
-  var want = (location.hash.match(/^#path-(.+)$/) || [])[1];
+  var want = (location.search.match(/[?&]path=([^&#]+)/) || location.hash.match(/^#path-(.+)$/) || [])[1];
   var start = want && root.querySelector('.pth[data-path="' + want + '"]') ? want : (root.querySelector('.pth[data-path="p-telemetry"]') ? 'p-telemetry' : (root.querySelector('.path-btn') || {getAttribute: function () { return null; }}).getAttribute('data-path'));
   if (start && wide.matches) activate(start);
 })();
