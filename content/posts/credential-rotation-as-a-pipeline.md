@@ -23,6 +23,6 @@ A Harbor robot account that CI uses drifted out of sync with the SSOT for weeks.
 
 Builds started failing with 401s weeks after the actual mistake. Nothing was obviously broken. Three systems just held three different versions of one password.
 
-Both fixes were structural. The provider now manages the robot secret with a write-only argument, so Terraform asserts the value instead of ignoring it. The legacy argument was a silent no-op on update, worth knowing if you run Harbor through Terraform. A sync subcommand maps SSOT entries to GitLab CI variables and pushes them as part of rotation, so a credential that isn't in the mapping can't exist anywhere.
+Both fixes were structural. The provider now manages the robot secret with a write-only argument, so Terraform asserts the value instead of ignoring it. The legacy argument was a silent no-op on update, worth knowing if you run Harbor through Terraform. A sync subcommand maps SSOT entries to CI variables and pushes them as part of rotation, so a credential that isn't in the mapping can't exist anywhere.
 
 The registry answers one question: which consumers hold a given credential. A rotation completes when every consumer has the new value and proves it works, and listing those consumers is the hard part. Every drift since has been a missing registry entry.

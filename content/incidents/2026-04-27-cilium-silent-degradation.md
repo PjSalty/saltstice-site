@@ -67,4 +67,4 @@ All six watch datapath outcomes: drops, endpoint regeneration failures, and poli
 
 ## Recovery path for the CNI
 
-Flux and Cilium coexist fine until you need to replace Cilium. Then the GitOps controller can't pull charts, because chart pulls go through DNS, which goes through Cilium. Keep a non-Flux recovery path for the CNI: an Ansible playbook, a Semaphore template, or a script in a runbook.
+Flux and Cilium coexist fine until you need to replace Cilium. Then the GitOps controller can't pull charts, because chart pulls go through DNS, which goes through Cilium. Keep a non-Flux recovery path for the CNI: an Ansible playbook or a script in a runbook.

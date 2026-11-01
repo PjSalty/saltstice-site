@@ -1,0 +1,49 @@
+{{- define "main" }}
+{{- $tags := .Params.tags | default slice -}}
+{{- $reg := "" -}}
+{{- if in $tags "terraform" }}{{ range slice "truenas" "unifi" }}{{ if in $tags . }}{{ $reg = . }}{{ end }}{{ end }}{{ end -}}
+{{- $lic := "" }}{{ with findRE `MPL-2\.0|Apache-2\.0|GPL-[23]\.0|MIT` .RawContent 1 }}{{ $lic = index . 0 }}{{ end }}
+<article class="art">
+  <header class="wrap art-head">
+    {{- partial "crumbs.html" . }}
+    <p class="meta">{{ partial "chip.html" "project" }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2006" }}</time>{{ with .Lastmod }}{{ if ne (.Format "2006-01-02") ($.Date.Format "2006-01-02") }}<span>updated {{ .Format "2006-01-02" }}</span>{{ end }}{{ end }}</p>
+    <h1>{{ .Title }}</h1>
+    {{- with .Params.summary }}<p class="lede">{{ . }}</p>{{ end }}
+    {{- if $reg }}
+    {{- $rv := partial "regver.html" $reg }}
+    <dl class="reg">
+      <div><dt>Version</dt><dd>v{{ $rv.version }}</dd></div>
+      {{- if $rv.downloads }}<div><dt>Downloads</dt><dd>{{ lang.FormatNumber 0 $rv.downloads }}</dd></div>{{ end }}
+      {{- with $lic }}<div><dt>License</dt><dd>{{ . }}</dd></div>{{ end }}
+      <div class="acts">
+        <a class="btn btn-primary" href="https://registry.terraform.io/providers/PjSalty/{{ $reg }}/latest" rel="noopener">Registry</a>
+        <a class="btn" href="https://registry.terraform.io/providers/PjSalty/{{ $reg }}/latest/docs" rel="noopener">Docs</a>
+        <a class="btn" href="https://github.com/PjSalty/terraform-provider-{{ $reg }}" rel="noopener">Source</a>
+      </div>
+    </dl>
+    <div class="install">
+      <h2>Install</h2>
+      <div class="code" data-lang="hcl"><div class="code-bar"><span class="lang">hcl</span></div><pre class="chroma"><code>terraform {
+  required_providers {
+    {{ $reg }} = {
+      source  = "PjSalty/{{ $reg }}"
+      version = "~&gt; {{ index (split $rv.version ".") 0 }}.{{ index (split $rv.version ".") 1 }}"
+    }
+  }
+}</code></pre></div>
+    </div>
+    {{- else }}
+    <p class="proj-meta">{{ with $lic }}<span>{{ . }}</span>{{ end }}<span>{{ delimit $tags ", " }}</span></p>
+    {{- end }}
+  </header>
+  <div class="wrap art-grid">
+    {{- if and (ne .Params.showToc false) (gt (len .TableOfContents) 80) }}
+    <aside class="toc" aria-label="Contents"><details><summary>Contents</summary><nav>{{ .TableOfContents }}</nav></details></aside>
+    {{- end }}
+    <div class="prose">{{ .Content }}</div>
+  </div>
+  <footer class="wrap art-foot">
+    <nav class="prevnext" aria-label="Projects"><a class="prev" href="/projects/"><small>Back</small>All projects</a></nav>
+  </footer>
+</article>
+{{- end }}

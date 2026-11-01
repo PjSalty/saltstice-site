@@ -1,0 +1,9 @@
+{{- /* Status-page style postmortem row. Pass the page. Facts come from front matter only. */ -}}
+<li class="irow">
+  <a class="irow-link" href="{{ .RelPermalink }}">
+    <span class="mk" aria-hidden="true"></span>
+    <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+    <span class="irow-main"><span class="t">{{ .Title }}</span>{{ with .Params.summary }}<span class="cause">{{ . | plainify | truncate 170 }}</span>{{ end }}</span>
+    {{- with .Params.topics }}<span class="areas">{{ range first 3 . }}<span class="tag">{{ . }}</span>{{ end }}</span>{{ end }}
+  </a>
+</li>

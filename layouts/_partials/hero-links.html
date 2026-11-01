@@ -1,0 +1,14 @@
+{{- /* Link paths for one view. Pass dict: v, P (id -> [x y w h]), links (ids), LK. Orthogonal-ish S-curves between box edge midpoints. */ -}}
+{{- $v := .v }}{{ $P := .P }}{{ $LK := .LK }}
+{{- range .links }}
+  {{- $l := index $LK . }}{{ $a := index $P $l.from }}{{ $b := index $P $l.to }}
+  {{- if and $l $a $b }}
+  {{- $ax := index $a 0 }}{{ $ay := index $a 1 }}{{ $aw := index $a 2 }}{{ $ah := index $a 3 }}{{ $bx := index $b 0 }}{{ $by := index $b 1 }}{{ $bw := index $b 2 }}{{ $bh := index $b 3 }}
+  {{- $d := "" }}
+  {{- if ge $bx (add $ax $aw) }}{{ $sx := add $ax $aw }}{{ $sy := add $ay (div $ah 2) }}{{ $ey := add $by (div $bh 2) }}{{ $k := div (sub $bx $sx) 2 }}{{ $d = printf "M%d %dC%d %d %d %d %d %d" $sx $sy (add $sx $k) $sy (sub $bx $k) $ey $bx $ey }}
+  {{- else if ge $ax (add $bx $bw) }}{{ $sx := $ax }}{{ $sy := add $ay (div $ah 2) }}{{ $ex := add $bx $bw }}{{ $ey := add $by (div $bh 2) }}{{ $k := div (sub $sx $ex) 2 }}{{ $d = printf "M%d %dC%d %d %d %d %d %d" $sx $sy (sub $sx $k) $sy (add $ex $k) $ey $ex $ey }}
+  {{- else }}{{ $mx := add $ax (div $aw 2) }}{{ $nx := add $bx (div $bw 2) }}{{ $down := ge $by $ay }}{{ $sy := cond $down (add $ay $ah) $ay }}{{ $ey := cond $down $by (add $by $bh) }}{{ $k := div (sub $ey $sy) 2 }}{{ $d = printf "M%d %dC%d %d %d %d %d %d" $mx $sy $mx (add $sy $k) $nx (sub $ey $k) $nx $ey }}
+  {{- end }}
+  <path class="hl hl-{{ $l.kind }}" id="hd-{{ $v }}-{{ $l.id }}" d="{{ $d }}" data-kind="{{ $l.kind }}" data-from="{{ $l.from }}" data-to="{{ $l.to }}" data-link="{{ $l.id }}"/>
+  {{- end }}
+{{- end }}

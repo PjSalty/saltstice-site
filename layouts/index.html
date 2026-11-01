@@ -1,26 +1,59 @@
 {{- define "main" }}
-<div class="home-intro">
-  {{ .Content }}
-  <p class="lab-pill"><a href="/telemetry/">Lab status and live metrics &#8599;</a></p>
-</div>
-<div class="home-cols">
-  <section>
-    <h2>Start here</h2>
-    <ul>
-      {{- range slice "/incidents/2026-04-17-full-site-power-loss" "/posts/disabling-kube-proxy-under-cilium" "/posts/credential-rotation-as-a-pipeline" "/posts/split-horizon-dns-for-a-homelab" "/posts/backups-with-zero-recurring-spend" "/posts/shipping-a-terraform-provider" }}
-        {{- with $.Site.GetPage . }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>{{ end }}
+{{- $h := site.Params.hero }}
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="dot" aria-hidden="true"></span>{{ $h.eyebrow }}</p>
+      <h1>{{ $h.title }}</h1>
+      <p class="lead">{{ $h.lead }}</p>
+      <p class="cta"><a class="btn btn-primary" href="/lab/">Explore the lab</a><a class="btn" href="/incidents/">Read the postmortems</a></p>
+    </div>
+    {{ if site.Data.topology }}{{ partial "topology-hero.html" . }}{{ end }}
+  </div>
+</section>
+
+<section class="band" aria-labelledby="h-live">
+  <div class="wrap">
+    <div class="sec-head"><div><h2 id="h-live"><span class="idx">01</span>The lab, live</h2><p class="sec-sub">Numbers read from the cluster, refreshed every minute.</p></div><a href="/lab/">Open the full map</a></div>
+    {{ partial "telemetry.html" "full" }}
+    {{ partial "stats.html" . }}
+  </div>
+</section>
+
+<section class="band" aria-labelledby="h-ship">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="h-ship"><span class="idx">02</span>Shipped</h2><a href="/projects/">All projects</a></div>
+    <div class="ship">
+      {{- with site.GetPage "/projects/terraform-provider-truenas" }}{{ partial "feature.html" (dict "page" . "reg" "truenas") }}{{ end }}
+      <ul class="plist">
+        {{- range site.Params.featuredProjects }}{{ if ne . "terraform-provider-truenas" }}{{ with site.GetPage (printf "/projects/%s" .) }}{{ partial "plist.html" . }}{{ end }}{{ end }}{{ end }}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="h-new">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="h-new"><span class="idx">03</span>Writing</h2><a href="/writing/">All {{ len (where site.RegularPages "Section" "in" (slice "posts" "incidents")) }} entries</a></div>
+    <div class="feed">
+      {{- range first 3 ((where site.RegularPages "Section" "in" (slice "posts" "incidents")).GroupByDate "January 2006") }}
+      <h3 class="feed-m">{{ .Key }}</h3>
+      <ul class="feed-l">{{ range sort .Pages "Date" "desc" }}{{ partial "line.html" . }}{{ end }}</ul>
       {{- end }}
+    </div>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="h-inc">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="h-inc"><span class="idx">04</span>Postmortems</h2><a href="/incidents/">All {{ len (where site.RegularPages "Section" "incidents") }}</a></div>
+    <div class="inc-head">
+      <p class="lead">What broke, why, and what changed. Wrong calls stay in.</p>
+      {{ partial "density.html" . }}
+    </div>
+    <ul class="irows">
+      {{- range first 5 (where site.RegularPages "Section" "incidents").ByDate.Reverse }}{{ partial "irow.html" . }}{{ end }}
     </ul>
-  </section>
-  <section>
-    <h2>Recent</h2>
-    <ul>
-      {{- range first 8 (sort (where site.RegularPages "Section" "in" (slice "posts" "incidents")) "Date" "desc") }}
-        {{- $t := "note" }}{{ with .Params.types }}{{ $t = index . 0 }}{{ end }}
-        <li><span class="badge badge-{{ $t }}">{{ $t }}</span><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
-      {{- end }}
-    </ul>
-  </section>
-</div>
-<p class="home-all"><a href="/writing/">All writing &#8594;</a></p>
+  </div>
+</section>
 {{- end }}

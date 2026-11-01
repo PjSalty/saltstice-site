@@ -1,0 +1,80 @@
+{{- /* Home showpiece. Labels, counts and link kinds come from data/topology.yaml; only the placement is drawn by hand,
+       on an 8px grid. Two variants share one drawing routine: d (desktop) and m (phone, vertical).
+       hero.js adds ambient traffic, the cycling beam and the live cluster readout. */ -}}
+{{- $T := site.Data.topology -}}
+{{- $cfg := site.Params.topology -}}
+{{- $N := dict -}}{{ range $T.nodes }}{{ $N = merge $N (dict .id .) }}{{ end -}}
+{{- $LK := dict -}}{{ range $T.links }}{{ $LK = merge $LK (dict .id .) }}{{ end -}}
+{{- $host := index $N $cfg.host -}}
+{{- $masters := index $N "vm-masters" -}}{{ $pool := index $N "pool-ci" -}}
+{{- $workers := 0 -}}{{ range $T.nodes }}{{ if and (eq .kind "k8s-worker") (eq (.parent | default "") $cfg.host) }}{{ $workers = add $workers 1 }}{{ end }}{{ end -}}
+{{- $nm := int $masters.count -}}{{ $np := int $pool.count -}}{{ $ng := add (add $nm $workers) $np -}}
+{{- $D := dict
+  "vb" (slice 1200 640) "host" (slice 472 16 712 600) "ring" (slice 956 296 80) "ro" (slice 956 448) "title" (slice 496 52) "k" 1
+  "P" (dict
+    "visitor" (slice 16 64 168 40) "wan-client" (slice 16 120 168 40) "github-pages" (slice 16 176 168 40) "letsencrypt" (slice 16 232 168 40) "pushover" (slice 16 288 168 40)
+    "cloudflare" (slice 248 64 176 40) "isp" (slice 248 120 176 40) "rb4011" (slice 248 176 176 40) "lan-clients" (slice 248 232 176 40) "wifi-clients" (slice 248 288 176 40) "iot-clients" (slice 248 344 176 40) "crs317" (slice 248 400 176 40) "crs328" (slice 248 456 176 40) "ap-fleet" (slice 248 512 176 40)
+    "cloudflared" (slice 496 96 168 40) "traefik" (slice 496 152 168 40) "bgp-speaker" (slice 496 208 168 40) "external-dns" (slice 496 264 168 40) "vm-adguard" (slice 496 320 168 40) "vm-adguard-2" (slice 496 376 168 40) "cert-manager" (slice 496 432 168 40)
+    "prom-public" (slice 688 96 152 40) "jellyfin" (slice 688 152 152 40) "jf-postgres" (slice 688 208 152 40) "alertmanager" (slice 688 264 152 40)
+    "vm-truenas" (slice 496 552 168 40) "pool-tank" (slice 688 552 152 40) "ds-backups" (slice 872 552 160 40))
+  "links" (slice "l-vis-cf" "l-cf-gh" "l-cf-cloudflared" "l-cloudflared-traefik" "l-traefik-pp" "l-wan-rb" "l-rb-traefik" "l-traefik-jf" "l-jf-pg" "l-bgp" "l-isp-rb" "l-rb-317" "l-rb-328" "l-328-ap" "l-lan-rb" "l-rb-wifi" "l-rb-iot" "l-lan-dns" "l-adg-pair" "l-extdns-cf" "l-extdns-adg" "l-cm-cf" "l-cm-le" "l-am-push" "l-pg-backup" "l-truenas-pool") -}}
+{{- $M := dict
+  "vb" (slice 360 1120) "host" (slice 8 424 344 680) "ring" (slice 180 860 80) "ro" (slice 180 968) "title" (slice 24 456) "k" 0
+  "P" (dict
+    "visitor" (slice 16 24 164 40) "cloudflare" (slice 188 24 156 40) "wan-client" (slice 16 80 164 40) "github-pages" (slice 188 80 156 40) "letsencrypt" (slice 16 136 164 40) "pushover" (slice 188 136 156 40)
+    "isp" (slice 16 192 164 40) "rb4011" (slice 188 192 156 40) "lan-clients" (slice 16 248 164 40) "wifi-clients" (slice 188 248 156 40) "iot-clients" (slice 16 304 164 40) "crs317" (slice 188 304 156 40) "crs328" (slice 16 360 164 40) "ap-fleet" (slice 188 360 156 40)
+    "cloudflared" (slice 20 480 164 40) "traefik" (slice 192 480 148 40) "bgp-speaker" (slice 20 536 320 40) "external-dns" (slice 20 592 320 40) "vm-adguard" (slice 20 648 164 40) "vm-adguard-2" (slice 192 648 148 40) "cert-manager" (slice 20 704 164 40) "prom-public" (slice 192 704 148 40)
+    "vm-truenas" (slice 20 1008 164 40) "pool-tank" (slice 192 1008 148 40) "ds-backups" (slice 20 1064 164 40))
+  "links" (slice "l-vis-cf" "l-cf-gh" "l-isp-rb" "l-wan-rb" "l-cf-cloudflared" "l-cloudflared-traefik" "l-traefik-pp" "l-bgp" "l-adg-pair" "l-truenas-pool") -}}
+<div class="hero-dia" data-hero  data-endpoint="{{ site.Params.telemetry.endpoint }}" data-k8s-static="{{ site.Data.lab.k8s_nodes }}">
+<div class="hd-stage">
+{{- range $v, $V := dict "d" $D "m" $M }}
+{{- $vb := $V.vb }}{{ $H := $V.host }}{{ $R := $V.ring }}
+  <svg class="hdia hdia-{{ $v }}" data-v="{{ $v }}" viewBox="0 {{ $V.y0 | default 0 }} {{ index $vb 0 }} {{ sub (index $vb 1) ($V.y0 | default 0) }}" role="img" aria-label="The lab drawn from the topology data: visitors, Cloudflare and the router feed a Kubernetes cluster on one R740xd, with TrueNAS storage and backups" focusable="false">
+    <defs>
+      <radialGradient id="hd-glow-{{ $v }}" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="currentColor" stop-opacity=".4"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></radialGradient>
+      <linearGradient id="hd-frame-{{ $v }}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".07"/><stop offset="1" stop-color="currentColor" stop-opacity=".01"/></linearGradient>
+    </defs>
+    {{- if or (eq $v "d") (eq $v "m") }}
+    <rect class="hd-frame" x="{{ index $H 0 }}" y="{{ index $H 1 }}" width="{{ index $H 2 }}" height="{{ index $H 3 }}" rx="16" fill="url(#hd-frame-{{ $v }})"/>
+    <text class="hd-h" x="{{ index $V.title 0 }}" y="{{ index $V.title 1 }}">{{ $host.label }}</text>
+    {{- if $V.k }}<text class="hd-s" x="{{ index $V.title 0 }}" y="{{ add (index $V.title 1) 20 }}">{{ index $host.specs 1 }}, {{ index $host.specs 0 | replaceRE ` \(.*` "" }}</text>{{ end }}
+    {{- if $V.k }}<text class="hd-lane" x="16" y="40">INTERNET</text><text class="hd-lane" x="248" y="40">NETWORK EDGE</text>{{ end }}
+    <circle class="hd-glow" fill="url(#hd-glow-{{ $v }})" cx="{{ index $R 0 }}" cy="{{ index $R 1 }}" r="{{ mul (index $R 2) 2 }}"/>
+    <circle class="hd-ring" cx="{{ index $R 0 }}" cy="{{ index $R 1 }}" r="{{ index $R 2 }}"/>
+    <circle class="hd-ring hd-ring2" cx="{{ index $R 0 }}" cy="{{ index $R 1 }}" r="{{ mul (index $R 2) 0.7 }}"/>
+    {{- /* VLAN bands (desktop): label and count above, one dot per entry below */ -}}
+    {{- if $V.k }}
+    {{- range $bi, $b := slice (dict "z" "z-infra" "l" "Infrastructure VLAN") (dict "z" "z-storage" "l" "Storage VLAN") }}
+    {{- $y := add 96 (mul $bi 72) }}{{ $c := 0 }}{{ range $T.nodes }}{{ if and (eq (.parent | default "") $cfg.host) (eq .zone $b.z) }}{{ $c = add $c 1 }}{{ end }}{{ end }}
+    <g class="hd-band"><title>{{ range $T.nodes }}{{ if and (eq (.parent | default "") $cfg.host) (eq .zone $b.z) }}{{ .label }}; {{ end }}{{ end }}</title><rect x="1056" y="{{ $y }}" width="120" height="64" rx="8"/><text class="hd-s" x="1068" y="{{ add $y 22 }}">{{ $b.l | replaceRE ` VLAN` "" | replaceRE `Infrastructure` "Infra" }} <tspan class="hd-n" dx="8">{{ $c }}</tspan></text>
+      {{- $i := 0 }}{{ range $T.nodes }}{{ if and (eq (.parent | default "") $cfg.host) (eq .zone $b.z) }}<circle class="hd-dot{{ if eq (.status | default "") "stopped" }} off{{ end }}" cx="{{ add 1072 (mul (mod $i 8) 12) }}" cy="{{ add $y (add 36 (mul (div $i 8) 10)) }}" r="3.6"/>{{ $i = add $i 1 }}{{ end }}{{ end }}</g>
+    {{- end }}
+    {{- end }}
+    {{- /* cluster glyphs on the ring: control plane solid, workers outline, autoscaled pool dashed; ready dot outside the glyph */ -}}
+    {{- range seq 0 (sub $ng 1) }}
+    {{- $a := mul (sub (float .) 2.0) (div 6.2831853 (float $ng)) }}
+    {{- $gx := add (index $R 0) (mul (float (index $R 2)) (math.Cos $a)) }}{{ $gy := add (index $R 1) (mul (float (index $R 2)) (math.Sin $a)) }}
+    {{- $cls := cond (lt . $nm) "m" (cond (lt . (add $nm $workers)) "w" "c") }}
+    <g class="hd-node {{ $cls }}"><title>{{ cond (eq $cls "m") "Control plane node" (cond (eq $cls "w") "Worker node" "Autoscaled CI node") }}</title><rect x="{{ printf "%.1f" (sub $gx 12) }}" y="{{ printf "%.1f" (sub $gy 12) }}" width="24" height="24" rx="6"/><path d="M{{ printf "%.1f" (sub $gx 6) }} {{ printf "%.1f" (sub $gy 4) }}h12M{{ printf "%.1f" (sub $gx 6) }} {{ printf "%.1f" $gy }}h12M{{ printf "%.1f" (sub $gx 6) }} {{ printf "%.1f" (add $gy 4) }}h12"/><circle class="hd-rdy" cx="{{ printf "%.1f" (add $gx 15) }}" cy="{{ printf "%.1f" (sub $gy 15) }}" r="3"/></g>
+    {{- end }}
+    <text class="hd-h2" x="{{ index $R 0 }}" y="{{ sub (index $R 1) 6 }}" text-anchor="middle">Kubernetes</text>
+    <text class="hd-s" x="{{ index $R 0 }}" y="{{ add (index $R 1) 14 }}" text-anchor="middle"><tspan data-live="rke2_version">{{ index (split $T.kubernetes.version " ") 0 }}</tspan></text>
+    <text class="hd-ro" x="{{ index $V.ro 0 }}" y="{{ index $V.ro 1 }}" text-anchor="middle"> </text>
+
+    {{- else }}{{ end }}
+    <g class="hd-links">{{ partial "hero-links.html" (dict "v" $v "P" $V.P "links" $V.links "LK" $LK) }}</g>
+    <g class="hd-beams"></g>
+    {{ partial "hero-chips.html" (dict "v" $v "P" $V.P "N" $N) }}
+  </svg>
+{{- end }}
+  <canvas class="hd-fx" aria-hidden="true"></canvas>
+</div>
+  <p class="hd-tick" aria-live="off"></p>
+  <ul class="hd-paths" hidden>
+  {{- range $T.paths }}{{ if in (slice "p-telemetry" "p-jellyfin-wan" "p-lan-app") .id }}
+    <li data-id="{{ .id }}" data-label="{{ .label }}"><ol>{{ range .hops }}<li data-node="{{ .node }}"{{ with .via_link }} data-link="{{ . }}"{{ end }}></li>{{ end }}</ol></li>
+  {{- end }}{{ end }}
+  </ul>
+  <p class="hd-cap"><span class="pulse" aria-hidden="true"></span><span class="hd-cap-t" role="status" aria-live="off">Tracing a request</span><a href="/lab/#h-arch">Open the full map</a></p>
+</div>

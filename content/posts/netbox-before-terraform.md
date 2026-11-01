@@ -15,7 +15,7 @@ So the rule is simple: NetBox comes first. A VM goes into NetBox before Terrafor
 
 Planned state goes in at design time. A new service is a NetBox entry first: name, VLAN, an IP from the right prefix, role tags. Terraform reads that record, so the allocation has an owner instead of being a variable I typed twice.
 
-Actual state syncs back. A CLI subcommand reconciles what Ansible discovers on the hosts against what NetBox claims. Terraform writes desired state in, discovery writes observed state back.
+Actual state synced back (this part was retired, see the update at the end). A CLI subcommand reconciles what Ansible discovers on the hosts against what NetBox claims. Terraform writes desired state in, discovery writes observed state back.
 
 If NetBox and reality diverge, something changed outside the pipeline. That's either drift I need to investigate or an intrusion I need to rule out. Same discipline as the [Terraform drift guard]({{< relref "/posts/shipping-a-terraform-provider.md" >}}), pointed at inventory.
 
@@ -26,3 +26,7 @@ Inventory drives more than provisioning. The [firewall audit]({{< relref "/posts
 It's a tax, and I won't pretend otherwise. Every new thing is a NetBox entry before a `terraform apply`, maybe two extra minutes when I want to build. But that friction forces the "where does this live, what VLAN, what range" question to design time with a record, instead of debug time with tcpdump. I haven't hit an IP conflict since I put it in place.
 
 NetBox is heavy for a homelab. Full DCIM with racks and cable runs for a single chassis is overkill on paper.
+
+## Update, November 2026
+
+The sync jobs and the Ansible role that wrote discovered state back into NetBox were removed on 2026-09-29. NetBox still holds the IP and VLAN records. For live inventory the CLI now reads from Proxmox directly, so "NetBox is the source of truth for what's running" is no longer true here. What is still true is that an IP gets allocated before anything uses it.

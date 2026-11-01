@@ -56,7 +56,7 @@ configs:
       insecure_skip_verify: false
 ```
 
-I deployed via the Semaphore template that wraps the `harbor-runtime-mirrors` Ansible role. RKE2 picks it up on next agent restart, and charts can write `image: docker.io/library/postgres:16` and containerd fetches from the proxy, with no per-chart patches. The existing HelmRelease overrides were reverted and Renovate stopped fighting the patches.
+I deployed the `harbor-runtime-mirrors` Ansible role. RKE2 picks it up on next agent restart, and charts can write `image: docker.io/library/postgres:16` and containerd fetches from the proxy, with no per-chart patches. The existing HelmRelease overrides were reverted and Renovate stopped fighting the patches.
 
 ## Why this layer
 

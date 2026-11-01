@@ -2,7 +2,7 @@
 title: "Fixing flaky Ansible deploys"
 date: 2026-06-12
 summary: "Deploys passed on 3 to 15 of 15 hosts per run. Fixes: a dedicated runner VM, deploys scoped from the git diff, SSH tuning, and pinning every image reference instead of writing :latest."
-tags: [ansible, ci, gitlab, networking, reliability]
+tags: [ansible, ci, git, networking, reliability]
 types: ["build"]
 topics: ["Ansible", "CI"]
 ---
@@ -33,6 +33,6 @@ A script now maps the git diff to the affected roles and host groups, and the de
 
 ## The :latest incident
 
-A docker-compose template for GitLab itself had `:latest` in it. A routine deploy pulled a version four minor releases ahead, skipping the supported upgrade path, which GitLab does not handle gracefully. Recovery was manual: I walked the database migrations back onto the supported path, on the one VM that hosts every repo.
+A docker-compose template for the Git forge itself had `:latest` in it. A routine deploy pulled a version four minor releases ahead, skipping the supported upgrade path, which it does not handle gracefully. Recovery was manual: I walked the database migrations back onto the supported path, on the one VM that hosts every repo.
 
 Every image reference in every template is pinned now, and Renovate owns the bumps. Version bumps go through a reviewed MR.

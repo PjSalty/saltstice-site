@@ -1,0 +1,8 @@
+{{- /* Compact project list item. Pass the page. */ -}}
+{{- $tags := .Params.tags | default slice -}}
+{{- $reg := "" -}}
+{{- if in $tags "terraform" }}{{ range slice "truenas" "unifi" }}{{ if in $tags . }}{{ $reg = . }}{{ end }}{{ end }}{{ end -}}
+<li class="pitem">
+  <a href="{{ .RelPermalink }}"><span class="t">{{ .Title }}</span><span class="d">{{ .Params.summary | plainify | truncate 96 }}</span></a>
+  {{- if $reg }}{{ $rv := partial "regver.html" $reg }}<span class="v">v{{ $rv.version }}{{ if $rv.downloads }}, {{ lang.FormatNumber 0 $rv.downloads }} downloads{{ end }}</span>{{ else }}<span class="v">{{ delimit (first 2 .Params.tags) ", " }}</span>{{ end }}
+</li>

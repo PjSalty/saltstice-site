@@ -1,0 +1,128 @@
+{{- /* Architecture map, rendered from data/topology.yaml. Layers and groups come from params.topology.
+       The structure is plain HTML so it reads without JS; arch.js adds path tracing, hover details and link drawing.
+       Nothing here is typed in by hand: every chip, trunk count and path step is a row of the data file. */ -}}
+{{- $T := site.Data.topology -}}
+{{- $cfg := site.Params.topology -}}
+{{- $sc := newScratch -}}
+{{- range $T.nodes }}{{ $sc.SetInMap "N" .id . }}{{ end -}}
+
+{{- /* 1. assign every node (except the host box itself) to a layer */ -}}
+{{- range $T.nodes }}
+  {{- $n := . }}
+  {{- if ne $n.id $cfg.host }}
+    {{- $lid := "" }}
+    {{- if eq ($n.parent | default "") $cfg.host }}{{ $lid = "host" }}
+    {{- else }}
+      {{- range $cfg.layers }}{{ $l := . }}{{ if and (not $lid) (ne $l.id "host") }}{{ range $l.groups }}{{ if and (not $lid) (in (.ids | default slice) $n.id) }}{{ $lid = $l.id }}{{ end }}{{ end }}{{ end }}{{ end }}
+      {{- if not $lid }}{{ range $cfg.layers }}{{ $l := . }}{{ if and (not $lid) (ne $l.id "host") (in ($l.zones | default slice) $n.zone) }}{{ $lid = $l.id }}{{ end }}{{ end }}{{ end }}
+    {{- end }}
+    {{- if not $lid }}{{ $lid = "cluster" }}{{ end }}
+    {{- $sc.SetInMap "L" $n.id $lid }}
+    {{- $sc.Add (printf "m-%s" $lid) (slice $n.id) }}
+  {{- end }}
+{{- end -}}
+{{- $sc.SetInMap "L" $cfg.host "host" -}}
+{{- range $i, $l := $cfg.layers }}{{ $sc.SetInMap "I" $l.id $i }}{{ end -}}
+
+{{- /* 2. link kinds that cross each boundary between layers, for the trunk strips */ -}}
+{{- $nl := len $cfg.layers -}}
+{{- range $T.links }}
+  {{- $la := index ($sc.Get "L") .from }}{{ $lb := index ($sc.Get "L") .to }}
+  {{- if and $la $lb }}
+    {{- $ia := index ($sc.Get "I") $la }}{{ $ib := index ($sc.Get "I") $lb }}
+    {{- $lo := cond (lt $ia $ib) $ia $ib }}{{ $hi := cond (lt $ia $ib) $ib $ia }}{{ $lk := . }}
+    {{- if lt $lo $hi }}{{ range seq $lo (sub $hi 1) }}{{ $sc.Add (printf "cr-%d" .) (slice $lk.kind) }}{{ end }}{{ end }}
+  {{- end }}
+{{- end -}}
+{{- $kinds := slice -}}
+{{- range $T.links }}{{ if not (in $kinds .kind) }}{{ $kinds = $kinds | append .kind }}{{ end }}{{ end -}}
+{{- $hostNode := index ($sc.Get "N") $cfg.host -}}
+
+{{- $pan := and (reflect.IsMap .) .pan -}}{{- $cycle := and (reflect.IsMap .) .cycle -}}
+<div class="map" data-arch data-k8s-static="{{ site.Data.lab.k8s_nodes }}"{{ if $cycle }} data-cycle{{ end }}{{ if $pan }} data-pan{{ end }}>
+  <div class="map-top">
+    <div class="map-paths" role="group" aria-label="Trace a path through the lab">
+      <span class="lab">Trace a path</span>
+      {{- range $T.paths }}<button type="button" class="seg path-btn" data-path="{{ .id }}" data-aud="{{ .audience }}" aria-pressed="false">{{ .label }}</button>{{ end }}
+    </div>
+    <div class="map-tools">
+      <label class="tog"><input type="checkbox" data-show-links><span>Show all links</span></label>
+      <details class="legend-d"><summary>Legend</summary><ul class="map-legend" aria-label="Link kinds">
+        {{- range sort $kinds }}<li><i class="tk tk-{{ . }}" aria-hidden="true"></i>{{ . }}</li>{{ end }}
+        <li><i class="tk tk-unv" aria-hidden="true"></i>unverified</li>
+      </ul></details>
+    </div>
+  </div>
+
+  <div class="map-main">
+    <div class="map-view">
+    {{- if $pan }}<div class="map-zoom" role="group" aria-label="Zoom"><button type="button" class="zb" data-zoom="in" aria-label="Zoom in">+</button><button type="button" class="zb" data-zoom="out" aria-label="Zoom out">-</button><button type="button" class="zb zr" data-zoom="reset">Reset</button><span class="zh">ctrl + scroll to zoom, drag to pan</span></div>{{ end }}
+    <div class="map-canvas">
+      <canvas class="map-fx" aria-hidden="true"></canvas>
+      <svg class="map-links" aria-hidden="true" focusable="false"><g class="all"></g><g class="route"></g><g class="packets"></g></svg>
+      {{- range $li, $L := $cfg.layers }}
+      {{- $mem := $sc.Get (printf "m-%s" $L.id) | default slice }}
+      {{- if $mem }}
+      {{- $isHost := eq $L.id "host" }}
+      <section class="layer{{ if $isHost }} layer-host{{ end }}" data-layer="{{ $L.id }}" aria-label="{{ $L.label }}">
+        <h3 class="layer-name"><span>{{ $L.label }}</span></h3>
+        <div class="layer-body">
+          {{- if $isHost }}<p class="host-line"><b>{{ $hostNode.label }}</b>{{ with $hostNode.specs }}<span>{{ delimit . ", " }}</span>{{ end }}</p>{{ end }}
+          <div class="groups">
+          {{- $claimed := slice }}
+          {{- range $L.groups }}{{ $g := . }}{{ $ids := slice }}
+            {{- if $g.ids }}{{ range $mem }}{{ if in $g.ids . }}{{ $ids = $ids | append . }}{{ end }}{{ end }}
+            {{- else if $g.zone }}{{ range $mem }}{{ if and (eq (index ($sc.Get "N") .).zone $g.zone) (not (in $claimed .)) }}{{ $ids = $ids | append . }}{{ end }}{{ end }}{{ end }}
+            {{- $claimed = $claimed | append $ids }}
+            {{- if $ids }}
+            <div class="grp view-{{ $g.view | default "chips" }} w{{ $g.w | default 100 }}{{ if $g.tall }} tall{{ end }}">
+              <h4>{{ $g.label }}</h4>
+              <ul>{{ range $ids }}{{ partial "map-chip.html" (index ($sc.Get "N") .) }}{{ end }}</ul>
+            </div>
+            {{- end }}
+          {{- end }}
+          {{- $rest := slice }}{{ range $mem }}{{ if not (in $claimed .) }}{{ $rest = $rest | append . }}{{ end }}{{ end }}
+          {{- if $rest }}<div class="grp view-chips w100"><h4>Other</h4><ul>{{ range $rest }}{{ partial "map-chip.html" (index ($sc.Get "N") .) }}{{ end }}</ul></div>{{ end }}
+          </div>
+        </div>
+      </section>
+      {{- if lt (add $li 1) $nl }}
+      {{- $cr := $sc.Get (printf "cr-%d" $li) | default slice }}
+      <div class="trunk" aria-label="Links crossing this boundary">
+        {{- $seen := slice }}{{ range $cr }}{{ $k := . }}{{ if not (in $seen $k) }}{{ $seen = $seen | append $k }}{{ $c := 0 }}{{ range $cr }}{{ if eq . $k }}{{ $c = add $c 1 }}{{ end }}{{ end }}<span class="tkc"><i class="tk tk-{{ $k }}" aria-hidden="true"></i>{{ $k }} {{ $c }}</span>{{ end }}{{ end }}
+      </div>
+      {{- end }}
+      {{- end }}
+      {{- end }}
+    </div>
+    </div>
+
+    <aside class="map-side" aria-label="Path steps and details">
+      <div class="steps-pane">
+        <p class="side-hint">Pick a path above. The boxes it touches light up in order and the steps appear here.</p>
+        {{- range $T.paths }}
+        <section class="pth" id="path-{{ .id }}" data-path="{{ .id }}" aria-label="{{ .label }}">
+          <header><h3>{{ .label }}</h3><span class="chip chip-{{ cond (eq .audience "public") "incident" (cond (eq .audience "admin") "runbook" "build") }}">{{ .audience }}</span></header>
+          <p class="sum">{{ .description }}</p>
+          <ol class="hops">
+          {{- range $i, $h := .hops }}{{ $nn := index ($sc.Get "N") $h.node }}
+            <li data-node="{{ $h.node }}"{{ with $h.via_link }} data-link="{{ . }}"{{ end }}><span class="hn">{{ add $i 1 }}</span><div><b>{{ $nn.label }}</b><span>{{ $h.note }}</span></div></li>
+          {{- end }}
+          </ol>
+          <p class="pth-ctl"><button type="button" class="btn replay" data-replay hidden>Replay</button></p>
+        </section>
+        {{- end }}
+      </div>
+      <div class="detail" aria-live="polite"><p class="side-hint">Hover or focus a box for its role, specs and links.</p></div>
+    </aside>
+  </div>
+
+  <ul class="node-data" hidden>
+  {{- range $T.nodes }}
+    <li data-id="{{ .id }}"><b>{{ .label }}</b><span class="kind">{{ .kind }}{{ with .status }}, {{ . }}{{ end }}{{ if .unverified }}, unverified{{ end }}</span><span class="role">{{ .role }}</span>{{ with .specs }}<span class="specs">{{ delimit . ", " }}</span>{{ end }}{{ with .tags }}<span class="tags">{{ delimit . ", " }}</span>{{ end }}</li>
+  {{- end }}
+  </ul>
+  <ul class="link-data" hidden>
+  {{- range $T.links }}<li data-id="{{ .id }}" data-from="{{ .from }}" data-to="{{ .to }}" data-kind="{{ .kind }}">{{ .label }}</li>{{ end }}
+  </ul>
+</div>

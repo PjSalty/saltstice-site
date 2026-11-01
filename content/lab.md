@@ -1,98 +1,90 @@
 ---
 title: Lab
-summary: The hardware, network, and full stack on one page. Updated when something changes.
+summary: The hardware, network and stack behind the homelab. Numbers last checked 2026-11-01.
 showReadingTime: false
 aliases: ["/uses/"]
 ---
 
-The whole homelab runs on one used Dell R740xd. Writeups are in [Writing](/writing/) and the [public repo](https://github.com/PjSalty/saltstice-homelab), and operational numbers are on [Telemetry](/telemetry/).
+Everything runs on one used Dell R740xd. The map above is drawn from the same inventory as this page, and the live numbers come straight from the cluster. Writeups are in [Writing](/writing/) and the [public repo](https://github.com/PjSalty/saltstice-homelab).
+
+Some detail is left out on purpose: addresses, VLAN numbers, exact patch versions and anything about remote access. That's the stuff that helps an attacker more than a reader.
 
 ## Hardware
 
-- **Hypervisor**: Dell PowerEdge R740xd, 14th-gen, 2U, iDRAC9 for OOB. Proxmox VE on a ZFS SSD mirror.
-- **CPU**: 2x Intel Xeon Gold 6242R (Cascade Lake-R). 20 cores / 40 threads per socket, 40 / 80 total. 3.10 GHz base, 4.10 turbo, 205W TDP per socket.
-- **RAM**: 256 GiB DDR4-2933 ECC RDIMM. 16x 16 GiB, 16 of 24 slots, room to 384 GiB without bigger sticks.
-- **Boot/VM pool**: ZFS mirror of two SSDs, checksums self-heal on scrub.
-- **GPU**: NVIDIA RTX A2000, PCIe passthrough to `k8s-worker-1` for Jellyfin NVENC.
-- **PSUs**: 2x redundant, both lines hot.
-- **UPS**: Tripp Lite SMART1500LCD, 1500VA / 900W, monitored over USB with NUT (`tripplite_usb`).
+- **Hypervisor**: Dell PowerEdge R740xd, 14th-gen, 2U, running Proxmox VE. Boot and VM disks are a ZFS mirror of two SSDs.
+- **CPU**: 2x Intel Xeon Gold 6242R (Cascade Lake-R), 40 cores / 80 threads total, 3.1 GHz base and 4.1 GHz turbo.
+- **RAM**: 256 GiB DDR4-2933 ECC RDIMM, 16x 16 GiB in 16 of 24 slots.
+- **GPU**: NVIDIA RTX A2000, passed through to one Kubernetes worker. The device plugin splits it four ways, so Jellyfin transcodes and other GPU work share the card.
+- **Power**: two redundant PSUs on separate feeds, plus a 1500VA UPS watched by NUT. A real low-battery signal shuts the host down cleanly. A false one once did too, see [the postmortem]({{< relref "/incidents/2026-09-27-ups-false-low-battery-halted-host.md" >}}).
 
 ## VMs
 
-{{< lab "vms_running" >}} VMs on the one hypervisor, about {{< lab "ram_allocated_gib" >}} GiB of {{< lab "ram_total_gib" >}} GiB allocated, the rest ZFS ARC and headroom. All run Debian 13 (Trixie), provisioned by Terraform (bpg/proxmox) off the VMID 9000 cloud template, cloud-init for first boot, Ansible after. The table lists the long-lived ones; the rest are a disposable test fleet for provider development.
+{{< lab "vms_running" >}} VMs were running on the one hypervisor on 2026-11-01, with about {{< lab "ram_allocated_gib" >}} of {{< lab "ram_total_gib" >}} GiB allocated and the rest left to ZFS and headroom. That count includes the autoscaled CI nodes alive that day and a few test guests. Every VM runs Debian 13, gets built by Terraform from a cloud-init template and configured by Ansible after first boot.
 
 | VM | vCPU / RAM / Disk | Role |
 |---|---|---|
-| `truenas` | 4 / 32 GiB / 128 GiB (+ passthrough disks) | TrueNAS SCALE, NFS + iSCSI + S3 |
-| `gitlab` | 6 / 12 / 100 | Self-hosted GitLab + CI engine |
-| `harbor` | 4 / 8 / 100 | Container image registry |
-| `netbox` | 2 / 4 / 50 | DCIM + IPAM source of truth |
-| `adguard` | 2 / 2 / 32 | Internal DNS + ad blocking |
-| `adguard-2` | 2 / 2 / 32 | Second DNS node behind a keepalived VIP |
-| `unifi-os` | 4 / 8 / 64 | UniFi OS Server, network controller |
-| `haproxy-1/2` | 2 / 2 / 32 each | K8s API LB + keepalived VIP |
-| `ci-runner` | 4 / 8 / 50 | Dedicated GitLab runner |
-| `amp` | 4 / 16 / 200 | CubeCoders AMP control panel |
-| `k8s-master-1/2/3` | 4 / 8 / 100 each | RKE2 control plane + etcd |
-| `k8s-worker-1` | 8 / 16 / 150 | GPU worker (A2000 passthrough) |
-| `k8s-worker-2/3` | 4 / 16 / 150-200 each | General workers |
-| `vpn` | 8 / 2 / 32 | wg-easy WireGuard server (DMZ) |
+| `truenas` | 4 / 32 GiB / 128 GiB, plus the passed-through disks | TrueNAS SCALE: iSCSI, NFS and the backup datasets |
+| Git forge | 6 / 12 / 100 | Self-hosted Git hosting and CI engine |
+| `harbor` | 4 / 8 / 250 | Container registry and pull-through cache |
+| `netbox` | 2 / 4 / 50 | IP and device records |
+| `adguard`, `adguard-2` | 2 / 2 / 32 each | Internal DNS pair with split horizon and ad blocking |
+| `unifi-os` | 4 / 8 / 64 | Wi-Fi and switch controller |
+| `haproxy-1`, `haproxy-2` | 2 / 2 / 32 each | Kubernetes API load balancer pair behind a keepalived VIP |
+| `ci-runner` | 4 / 8 / 50 | CI runner for jobs that deploy to VMs |
+| `k8s-master-1..3` | 4 / 10 / 100 each | RKE2 control plane and etcd, no application pods |
+| `k8s-worker-1` | 8 / 32 / 150 | GPU worker |
+| `k8s-worker-2`, `k8s-worker-3` | 4 / 16 / 150 to 200 each | General workers |
+| `ci-pool-*` | 2 / 8 / 54 each | Karpenter CI nodes, created on demand and gone when idle |
+
+A small fleet of test VMs comes and goes for provider development, and the old VMs that are parked stay out of this table.
 
 ## Storage
 
-- **NAS**: TrueNAS SCALE {{< lab "truenas_version" >}} on a bare VM. ZFS pool `tank`, RAIDZ2 on 6 TB drives, hot spare in the chassis. Datasets per workload: Postgres zvols on iSCSI, media on NFS with compression, S3 (in-cluster SeaweedFS) for backup objects.
-- **K8s CSI**: truenas-csi, the official iX WebSocket-native driver. StorageClasses `truenas-iscsi` (RWO block, databases) and `nfs-client` (RWX file, everything else). NFS doesn't guarantee fsync across the network and Postgres needs it, so databases go on iSCSI ([postgres on iscsi]({{< relref "/posts/iscsi-block-storage-for-postgres.md" >}})).
-- **Backup**: Velero for K8s state, Kopia for VM-level, both to the in-cluster SeaweedFS S3 so backups don't depend on the same TrueNAS box.
+- **NAS**: TrueNAS SCALE {{< lab "truenas_version" >}} in a VM with its disk controller passed through. Pool `tank` is one 12-disk RAIDZ2 vdev. Each workload gets its own datasets: database volumes on iSCSI, media on NFS, backups on their own datasets.
+- **Kubernetes storage**: truenas-csi {{< lab "truenas_csi_version" >}}, the official iX driver. `truenas-iscsi` is block storage for anything that needs real fsync (Postgres lives here, see [postgres on iSCSI]({{< relref "/posts/iscsi-block-storage-for-postgres.md" >}})). `nfs-client` is shared file storage for everything else.
+- **Backup**: three layers. Velero with the Kopia uploader backs up cluster state and volumes to an in-cluster SeaweedFS S3 store. Proxmox vzdump backs up whole VMs to TrueNAS over NFS. A nightly dump covers Jellyfin's Postgres database on its own.
 
 ## Network
 
-![Network topology: internet through RB4011 and CRS317 into the R740xd, VLAN segments inside Proxmox](/diagrams/topology.svg)
+- **Router**: MikroTik RB4011, RouterOS {{< lab "routeros_version" >}}. Main firewall, routing between segments, and the BGP peer for the cluster's load-balancer addresses.
+- **Switches**: MikroTik CRS317 for 10G SFP+ aggregation and CRS328 for PoE access.
+- **Wi-Fi**: UniFi access points, managed by the controller VM.
+- **Kubernetes API**: the HAProxy pair with a keepalived VIP.
 
-- **Router**: MikroTik RB4011iGS+, RouterOS {{< lab "routeros_version" >}}. BGP peering with the cluster, primary firewall.
-- **Switches**: CRS317-1G-16S+ (10G aggregation, 16x SFP+) and CRS328-24P-4S+ (PoE access for APs and cameras).
-- **K8s API LB**: HAProxy + keepalived VIP across two VMs.
+The network is split into segments for management, infrastructure, Kubernetes, storage and applications, plus a DMZ and the client networks (trusted, wireless, IoT and guest). Traffic between them is denied by default, and every flow that crosses a boundary is an explicit rule on the router. IoT and guest reach the internet and nothing else.
 
-VLANs, every cross-VLAN flow an explicit firewall rule on the router. Trusted, IoT, and guest segments exist alongside these:
+How traffic gets in:
 
-| VLAN | Purpose |
-|---|---|
-| 1 | management: router, switches, BMC |
-| 20 | infrastructure: GitLab, Harbor, NetBox, DNS, HAProxy pair |
-| 30 | kubernetes: RKE2 nodes and pods |
-| 40 | storage: iSCSI and NFS |
-| 50 | applications: ingress VIPs |
-| 60 | DMZ: internet-exposed and untrusted |
-
-External access is one residential static IP with `:80` blocked by the ISP, so Jellyfin is exposed on a high port NAT'd to the Traefik `:443` VIP, Cloudflare DNS in front. Path of a request:
-
-```
-internet -> Cloudflare DNS -> router NAT -> Traefik (DMZ or internal) -> forward-auth (Authentik) -> K8s service -> pod
-LAN      -> AdGuard split DNS -> ingress VIP -> K8s service -> pod
+```text
+site visitor   -> Cloudflare -> GitHub Pages                (the homelab isn't in this path)
+live charts    -> Cloudflare -> outbound tunnel -> Traefik -> read-only telemetry API
+media clients  -> Jellyfin's own Traefik entrypoint -> Jellyfin   (nothing else answers there)
+LAN client     -> internal DNS -> ingress VIP over BGP -> Traefik -> forward-auth -> service -> pod
 ```
 
-Design and audit detail: [six VLANs and a firewall audit]({{< relref "/posts/six-vlans-and-an-honest-firewall-audit.md" >}}), [split-horizon DNS]({{< relref "/posts/split-horizon-dns-for-a-homelab.md" >}}).
+Design and audit detail: [VLAN segmentation and the firewall audit]({{< relref "/posts/six-vlans-and-an-honest-firewall-audit.md" >}}), [split-horizon DNS]({{< relref "/posts/split-horizon-dns-for-a-homelab.md" >}}).
 
 ## Platform
 
 | Layer | Choice |
 |---|---|
-| Kubernetes | RKE2, 3 masters + 3 workers, Karpenter node autoscaling |
-| CNI | Cilium, kube-proxy-free, BGP MD5, Hubble |
-| GitOps | Flux v2, multi-source (manifests repo + secrets repo) |
-| Secrets | SOPS-Age in git, ESO fan-out to per-namespace secrets |
-| Ingress | Traefik, internal + DMZ instances, Authentik forward-auth |
-| Storage CSI | truenas-csi: iSCSI for databases, NFS for shared |
-| Backup | Velero + Kopia to in-cluster SeaweedFS S3, pg_dump tier, ZFS under it |
-| Identity | Authentik, OIDC apps wired by a one-shot blueprint Job, forward-auth for the non-OIDC ones |
-| Policy | Kyverno (enforce) and CiliumNetworkPolicies, default-deny per namespace |
-| Runtime security | Falco + CrowdSec |
-| Observability | Prometheus, Grafana, Loki, Tempo, AlertManager to Pushover |
-| Registry | Harbor, containerd-mirror proxy caching for the public upstreams |
-| CI/CD | self-hosted GitLab, dedicated deploy runner VM, Renovate |
-| Inventory | NetBox, allocate-before-build |
-| Automation | one Go CLI with an embedded read-only MCP server |
+| Kubernetes | RKE2 {{< lab "rke2_version" >}}: 3 control plane nodes that run no apps, 3 workers, Karpenter CI nodes on demand |
+| Networking | Cilium with kube-proxy replacement and Hubble; MetalLB announces service addresses to the router over BGP |
+| GitOps | Flux with two sources: the manifests repo and a SOPS-encrypted secrets repo |
+| Secrets | SOPS with age in Git, External Secrets fan-out to each namespace |
+| Ingress | Traefik (internal and DMZ instances), Cloudflare Tunnel for the public pieces, Authentik forward-auth |
+| Storage | truenas-csi: iSCSI for databases, NFS for shared data |
+| Backup | Velero with Kopia to SeaweedFS S3, vzdump for VMs, Postgres dumps |
+| Identity | Authentik, OIDC wherever an app supports it, forward-auth for the rest |
+| Policy | Kyverno in enforce mode, Pod Security labels, default-deny Cilium network policies per namespace |
+| Runtime | Falco on every node |
+| Observability | Prometheus, Grafana, Loki, Tempo, Alertmanager to push notifications, ntfy for scheduled jobs |
+| Registry | Harbor, plus pull-through caches for the public registries through containerd mirrors |
+| CI/CD | Self-hosted Git forge and CI, separate build and deploy runners, Karpenter burst nodes for CI, Renovate |
+| Inventory | Proxmox and the cluster are the live source; NetBox keeps the address records |
+| Automation | One Go CLI with a read-only MCP server built in |
 
-Renovate updates a single `image-versions` ConfigMap with custom regex managers; HelmReleases reference `${IMAGE_X}` placeholders that Flux postBuild substitutes, so every app rolls forward from one change. Container nodes pull through Harbor via containerd mirrors (`/etc/rancher/rke2/registries.yaml`), see [the postmortem]({{< relref "/incidents/2026-04-09-harbor-proxy-containerd-mirrors.md" >}}) for why that lives at the runtime layer.
+Renovate updates a single `image-versions` ConfigMap with custom regex managers. HelmReleases reference `${IMAGE_X}` placeholders that Flux fills in at apply time, so every app rolls forward from one change. Nodes pull through Harbor via containerd mirrors, see [the postmortem]({{< relref "/incidents/2026-04-09-harbor-proxy-containerd-mirrors.md" >}}) for why that lives at the runtime layer.
 
 ## Workstation
 
@@ -100,4 +92,4 @@ Arch Linux, zsh with starship, Kitty, Neovim, and the usual CLI set (eza, bat, r
 
 ## This site
 
-Hugo extended with PaperMod, hosted on GitHub Pages, Cloudflare in front with proxy on the apex.
+Hugo with a theme of my own: Geist type, self-hosted, no third-party requests and a strict CSP. The live charts read a small read-only API that serves five aggregate numbers and nothing else. Hosted on GitHub Pages with Cloudflare in front.

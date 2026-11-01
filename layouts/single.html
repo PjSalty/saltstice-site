@@ -1,45 +1,50 @@
 {{- define "main" }}
-<article class="post-single">
-  <header class="post-header">
-    {{ partial "breadcrumbs.html" . }}
-    {{- $t := "" }}{{ with .Params.types }}{{ $t = index . 0 }}{{ end }}
-    {{- with $t }}<div class="post-type"><span class="badge badge-{{ . }}">{{ . }}</span></div>{{ end }}
-    <h1 class="post-title">{{ .Title }}</h1>
-    {{- if .Description }}
-    <div class="post-description">{{ .Description }}</div>
-    {{- end }}
-    {{- if not (.Param "hideMeta") }}
-    <div class="post-meta">
-      {{- partial "post_meta.html" . -}}
-      {{- partial "edit_post.html" . -}}
-    </div>
-    {{- end }}
+{{- if eq .File.Path "lab.md" }}
+<header class="wrap page-head lab-hero">
+  {{- partial "crumbs.html" . }}
+  <h1>{{ .Title }}</h1>
+  {{- with .Params.summary }}<p class="lede">{{ . }}</p>{{ end }}
   </header>
 
-  {{- if (.Param "ShowToc") }}
-  {{- partial "toc.html" . }}
+<section class="wrap lab-arch band-tight" aria-labelledby="h-arch">
+  <div class="sec-head"><h2 id="h-arch">Architecture</h2></div>
+  {{ partial "topology.html" (dict "pan" true) }}
+</section>
+<section class="wrap band lab-tele" id="telemetry" aria-labelledby="h-tele">
+  <div class="sec-head"><h2 id="h-tele">Live telemetry</h2></div>
+  {{ partial "telemetry.html" "full" }}
+  {{ partial "stats.html" . }}
+</section>
+{{- else if eq .File.Path "telemetry.md" }}
+<header class="wrap page-head">
+  {{- partial "crumbs.html" . }}
+  <h1>Live telemetry</h1>
+  <p class="lede">Cluster numbers from the last two hours, drawn in your browser from a read-only feed.</p>
+</header>
+<section class="wrap lab-tele" aria-label="Telemetry">{{ partial "telemetry.html" "full" }}
+  <p class="tele-more"><a href="/lab/">Hardware, network and stack on the Lab page</a></p></section>
+{{- else }}
+<header class="wrap page-head">
+  {{- partial "crumbs.html" . }}
+  <h1>{{ .Title }}</h1>
+  {{- with .Params.summary | default .Description }}<p class="lede">{{ . }}</p>{{ end }}
+</header>
+{{- end }}
+{{- if ne .File.Path "telemetry.md" }}
+<div class="wrap art-grid">
+  {{- if and (ne .Params.showToc false) (gt (len .TableOfContents) 80) }}
+  <aside class="toc" aria-label="Contents"><details><summary>Contents</summary><nav>{{ .TableOfContents }}</nav></details></aside>
   {{- end }}
-
-  {{- if .Content }}
-  <div class="post-content md-content">
-    {{- if not (.Param "disableAnchoredHeadings") }}
-    {{- partial "anchored_headings.html" .Content -}}
-    {{- else }}{{ .Content }}{{ end }}
+  <div class="prose">{{ .Content }}</div>
+</div>
+{{- end }}
+{{- if eq .File.Path "about.md" }}
+<div class="wrap reach-wrap">
+  <div class="reach">
+    <h2>Get in touch</h2>
+    <p>The code is on GitHub and the providers are on the Terraform Registry. Security reports go through the advisory form in <a href="/.well-known/security.txt">security.txt</a>.</p>
+    <p class="cta"><a class="btn btn-primary" href="https://github.com/PjSalty" rel="noopener">GitHub profile</a><a class="btn" href="https://registry.terraform.io/namespaces/PjSalty" rel="noopener">Terraform Registry</a><a class="btn btn-ghost" href="/index.xml">RSS</a></p>
   </div>
-  {{- end }}
-
-  {{- partial "extend_post_content.html" . }}
-
-  <footer class="post-footer">
-    {{- $tags := .Language.Params.Taxonomies.tag | default "tags" }}
-    <ul class="post-tags">
-      {{- range ($.GetTerms $tags) }}
-      <li><a href="{{ .Permalink }}">{{ .LinkTitle }}</a></li>
-      {{- end }}
-    </ul>
-    {{- if (.Param "ShowPostNavLinks") }}
-    {{- partial "post_nav_links.html" . }}
-    {{- end }}
-  </footer>
-</article>
-{{- end }}{{/* end main */}}
+</div>
+{{- end }}
+{{- end }}

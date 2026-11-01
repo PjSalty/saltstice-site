@@ -1,0 +1,5 @@
+{{- if eq .Type "alert" -}}
+<aside class="callout callout-{{ .AlertType }}"><p class="callout-t">{{ .AlertType }}</p>{{ .Text }}</aside>
+{{- else -}}
+<blockquote>{{ .Text }}</blockquote>
+{{- end -}}

@@ -1,20 +1,19 @@
 {{- define "main" }}
-<header class="page-header"><h1>{{ .Title }}</h1>{{ with .Description }}<div class="post-description">{{ . }}</div>{{ end }}</header>
 {{- $writing := where site.RegularPages "Section" "in" (slice "posts" "incidents") }}
-<div class="writing-filter">
-  <button data-filter="all" class="active">All</button>
-  <button data-filter="build">Build</button>
-  <button data-filter="runbook">Runbook</button>
-  <button data-filter="incident">Incident</button>
-  <button data-filter="note">Note</button>
+<header class="wrap page-head">
+  <h1>{{ .Title }}</h1>
+  {{- with .Description }}<p class="lede">{{ . }}</p>{{ end }}
+  <p class="count">{{ len $writing }} entries, newest first</p>
+</header>
+<div class="wrap">
+  <div class="filters" data-filter-bar role="group" aria-label="Filter by type">
+    <button type="button" data-filter="all" aria-pressed="true">All</button>
+    <button type="button" data-filter="build" aria-pressed="false">Build</button>
+    <button type="button" data-filter="runbook" aria-pressed="false">Runbook</button>
+    <button type="button" data-filter="incident" aria-pressed="false">Incident</button>
+    <button type="button" data-filter="note" aria-pressed="false">Note</button>
+  </div>
+  <p class="topic-row"><span class="lab">Topics</span>{{ range first 10 site.Taxonomies.topics.ByCount }}<a class="pill" href="{{ .Page.RelPermalink }}">{{ .Page.LinkTitle }}</a>{{ end }}<a class="pill" href="/topics/">All topics</a></p>
+  <ul class="rows">{{ range (sort $writing "Date" "desc") }}{{ partial "row.html" . }}{{ end }}</ul>
 </div>
-<div class="writing-list">
-{{- range (sort $writing "Date" "desc") }}
-  {{- $t := "note" }}{{ with .Params.types }}{{ $t = index . 0 }}{{ end }}
-  <article class="writing-entry" data-type="{{ $t }}"><span class="badge badge-{{ $t }}">{{ $t }}</span><a href="{{ .RelPermalink }}">{{ .Title }}</a><time>{{ .Date.Format "Jan 2006" }}</time></article>
-{{- end }}
-</div>
-<script>
-document.querySelectorAll('.writing-filter button').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.writing-filter button').forEach(function(x){x.classList.remove('active')});b.classList.add('active');var f=b.dataset.filter;document.querySelectorAll('.writing-entry').forEach(function(e){e.style.display=(f==='all'||e.dataset.type===f)?'':'none'})})});
-</script>
 {{- end }}

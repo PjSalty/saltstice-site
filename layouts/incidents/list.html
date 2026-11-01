@@ -1,0 +1,17 @@
+{{- define "main" }}
+{{- $inc := where site.RegularPages "Section" "incidents" }}
+<header class="wrap page-head">
+  {{- partial "crumbs.html" . }}
+  <h1>{{ .Title }}</h1>
+  <p class="lede">{{ .Description }} Each one is what broke, why, and what changed. Wrong calls stay in.</p>
+  <p class="count">{{ len $inc }} postmortems</p>
+  {{ partial "density.html" . }}
+</header>
+<div class="wrap">
+  {{- $p := .Paginate $inc.ByDate.Reverse 40 }}
+  {{- range $p.Pages.GroupByDate "2006" }}
+  <h2 class="yr">{{ .Key }}</h2>
+  <ul class="irows">{{ range .Pages }}{{ partial "irow.html" . }}{{ end }}</ul>
+  {{- end }}
+</div>
+{{- end }}

@@ -1,0 +1,3 @@
+{{- /* One box on the architecture map. Pass the node. */ -}}
+{{- $off := eq (.status | default "") "stopped" -}}
+<li class="n k-{{ .kind }}{{ if .unverified }} unv{{ end }}{{ if $off }} off{{ end }}" id="n-{{ .id }}" data-id="{{ .id }}" tabindex="0">{{ partial "icon.html" .kind }}<span class="nm">{{ .label }}</span>{{ if $off }}<small>stopped</small>{{ else if .unverified }}<small>unverified</small>{{ else if and (isset . "count") (eq .count 0) }}<small>idle</small>{{ else if and (isset . "count") (gt .count 1) }}<small>x{{ .count }}</small>{{ end }}</li>

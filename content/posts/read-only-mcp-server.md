@@ -7,7 +7,7 @@ types: ["build"]
 topics: ["Automation", "Observability"]
 ---
 
-I built an MCP server for the homelab. It's one Go binary that exposes infrastructure state through read-only tools. 175 tools across 24 APIs: Proxmox, iDRAC, MikroTik, TrueNAS, Kubernetes, Flux, Cilium, cert-manager, Traefik, MetalLB, Kyverno, Velero, Prometheus, AlertManager, Loki, Tempo, Grafana, GitLab, Harbor, Authentik, and the app layer. It also exposes resources for the context that isn't a query: VLAN topology, VM inventory, aggregated health, current image versions.
+I built an MCP server for the homelab. It's one Go binary that exposes infrastructure state through read-only tools. 175 tools across 24 APIs: Proxmox, iDRAC, MikroTik, TrueNAS, Kubernetes, Flux, Cilium, cert-manager, Traefik, MetalLB, Kyverno, Velero, Prometheus, AlertManager, Loki, Tempo, Grafana, the Git forge, Harbor, Authentik, and the app layer. It also exposes resources for the context that isn't a query: VLAN topology, VM inventory, aggregated health, current image versions.
 
 My LLM agents kept needing current infrastructure state: pod status, BGP sessions, cert expiry, SMART data, pipeline results. The alternative was to hand the model a shell and kubectl, which gives it a write path to the cluster. This keeps the model read-only.
 
