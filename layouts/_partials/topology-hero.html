@@ -41,7 +41,7 @@
     <circle class="hd-ring hd-ring2" cx="{{ index $R 0 }}" cy="{{ index $R 1 }}" r="{{ mul (index $R 2) 0.7 }}"/>
     {{- /* VLAN bands (desktop): label and count above, one dot per entry below */ -}}
     {{- if $V.k }}
-    {{- range $bi, $b := slice (dict "z" "z-infra" "l" "Infrastructure VLAN") (dict "z" "z-storage" "l" "Storage VLAN") (dict "z" "z-dmz" "l" "DMZ VLAN") (dict "z" "z-mgmt" "l" "Management VLAN") }}
+    {{- range $bi, $b := slice (dict "z" "z-infra" "l" "Infrastructure VLAN") (dict "z" "z-storage" "l" "Storage VLAN") }}
     {{- $y := add 96 (mul $bi 64) }}{{ $c := 0 }}{{ range $T.nodes }}{{ if and (eq (.parent | default "") $cfg.host) (eq .zone $b.z) }}{{ $c = add $c 1 }}{{ end }}{{ end }}
     <g class="hd-band"><rect x="952" y="{{ $y }}" width="208" height="56" rx="8"/><text class="hd-s" x="968" y="{{ add $y 22 }}">{{ $b.l }}</text><text class="hd-s hd-n" x="1144" y="{{ add $y 22 }}" text-anchor="end">{{ $c }}</text>
       {{- $i := 0 }}{{ range $T.nodes }}{{ if and (eq (.parent | default "") $cfg.host) (eq .zone $b.z) }}<circle class="hd-dot{{ if eq (.status | default "") "stopped" }} off{{ end }}" cx="{{ add 972 (mul (mod $i 14) 12) }}" cy="{{ add $y 42 }}" r="3.6"/>{{ $i = add $i 1 }}{{ end }}{{ end }}</g>

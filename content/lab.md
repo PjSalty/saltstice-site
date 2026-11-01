@@ -9,7 +9,7 @@ The whole homelab runs on one used Dell R740xd. Writeups are in [Writing](/writi
 
 ## Hardware
 
-- **Hypervisor**: Dell PowerEdge R740xd, 14th-gen, 2U, iDRAC9 for OOB. Proxmox VE on a ZFS SSD mirror.
+- **Hypervisor**: Dell PowerEdge R740xd, 14th-gen, 2U. Proxmox VE on a ZFS SSD mirror.
 - **CPU**: 2x Intel Xeon Gold 6242R (Cascade Lake-R). 20 cores / 40 threads per socket, 40 / 80 total. 3.10 GHz base, 4.10 turbo, 205W TDP per socket.
 - **RAM**: 256 GiB DDR4-2933 ECC RDIMM. 16x 16 GiB, 16 of 24 slots, room to 384 GiB without bigger sticks.
 - **Boot/VM pool**: ZFS mirror of two SSDs, checksums self-heal on scrub.
