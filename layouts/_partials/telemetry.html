@@ -1,0 +1,32 @@
+{{- /* Live telemetry, drawn in the browser from the read-only metrics API. Pass the variant: "strip" or "full".
+       Server output is a skeleton plus an optional build-time fallback inside noscript. It never carries invented numbers. */ -}}
+{{- $v := . -}}
+{{- $t := site.Params.telemetry -}}
+<section class="tele tele-{{ $v }} is-loading" data-telemetry data-endpoint="{{ $t.endpoint }}" aria-label="Live lab telemetry">
+  <p class="tele-head"><span class="pulse" aria-hidden="true"></span><span class="tele-state" role="status" aria-live="polite">Loading live numbers</span><span class="tele-note">last 2 hours, refreshed every minute</span></p>
+  <ul class="tele-grid">
+  {{- range $t.series }}
+    <li class="tm" data-q="{{ .q }}" data-fmt="{{ .fmt }}">
+      <span class="k">{{ .label }}</span>
+      <span class="v" aria-live="off">&nbsp;</span>
+      {{- if eq $v "full" }}<span class="note">{{ .note }}</span>{{ end }}
+      <svg class="spark" viewBox="0 0 {{ if eq $v "full" }}600 150{{ else }}120 34{{ end }}" preserveAspectRatio="{{ if eq $v "full" }}xMidYMid meet{{ else }}none{{ end }}" aria-hidden="true" focusable="false"></svg>
+    </li>
+  {{- end }}
+  </ul>
+  <p class="tele-down" hidden>Telemetry is unavailable right now. The feed did not answer, so nothing is shown instead of a guess.</p>
+  {{- /* No-JS fallback: values at build time, only when the API answers with JSON. Fails soft. */}}
+  {{- $rows := slice }}
+  {{- range $t.series }}
+    {{- $s := . }}
+    {{- with try (resources.GetRemote (printf "%s/query?query=%s" $t.endpoint (urlquery .q))) }}
+      {{- if and (not .Err) .Value }}
+        {{- $c := .Value.Content | string | strings.TrimSpace }}
+        {{- if strings.HasPrefix $c "{" }}
+          {{- with try (transform.Unmarshal $c) }}{{ if and (not .Err) .Value }}{{ with .Value.data }}{{ with index .result 0 }}{{ $rows = $rows | append (dict "label" $s.label "val" (index .value 1) "fmt" $s.fmt) }}{{ end }}{{ end }}{{ end }}{{ end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- if $rows }}<noscript><p class="tele-ssr">As of the last site build: {{ range $i, $r := $rows }}{{ if $i }}, {{ end }}{{ $r.label }} {{ if eq $r.fmt "pct" }}{{ printf "%.0f" (mul (float $r.val) 100) }}%{{ else }}{{ printf "%.0f" (float $r.val) }}{{ end }}{{ end }}.</p></noscript>{{ end }}
+</section>

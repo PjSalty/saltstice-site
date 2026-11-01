@@ -1,6 +1,6 @@
 {{- $idx := slice }}
 {{- range site.RegularPages }}
-  {{- if and (not .Params.searchHidden) (ne .Layout "archives") (ne .Layout "search") }}
+  {{- if and (not .Params.searchHidden) (ne .Layout "archives") (ne .Layout "search") (ne .File.Path "telemetry.md") }}
     {{- $idx = $idx | append (dict "title" .Title "content" (.Plain | htmlUnescape) "permalink" .Permalink "summary" (.Summary | plainify | htmlUnescape) "section" .Section "tags" (.Params.tags | default slice)) }}
   {{- end }}
 {{- end }}

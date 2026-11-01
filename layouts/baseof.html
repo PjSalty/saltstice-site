@@ -12,6 +12,10 @@
 {{- partial "footer.html" . }}
 {{- $app := resources.Get "js/app.js" | minify | fingerprint }}
 <script src="{{ $app.RelPermalink }}" integrity="{{ $app.Data.Integrity }}" defer></script>
+{{- if or .IsHome (in (slice "/lab/" "/telemetry/") .RelPermalink) }}
+{{- $tj := resources.Get "js/telemetry.js" | minify | fingerprint }}
+<script src="{{ $tj.RelPermalink }}" integrity="{{ $tj.Data.Integrity }}" defer></script>
+{{- end }}
 {{- block "scripts" . }}{{ end }}
 </body>
 </html>

@@ -1,20 +1,23 @@
 {{- define "main" }}
 {{- $h := site.Params.hero }}
+{{- $first := index (findRE `(?s)<p>.*?</p>` .Content 1) 0 }}
 <section class="hero">
   <div class="wrap hero-grid">
     <div class="hero-copy">
       <p class="eyebrow"><span class="dot" aria-hidden="true"></span>{{ $h.eyebrow }}</p>
       <h1>{{ $h.title }}</h1>
-      <div class="lead">{{ .Content }}</div>
-      <p class="cta"><a class="btn btn-primary" href="/projects/">Projects</a><a class="btn" href="/incidents/">Postmortems</a><a class="btn btn-ghost" href="https://github.com/PjSalty" rel="noopener">GitHub</a></p>
+      <div class="lead">{{ $first | safeHTML }}</div>
+      <p class="cta"><a class="btn btn-primary" href="/projects/">See what I shipped</a><a class="btn btn-ghost" href="/incidents/">Read the postmortems</a></p>
     </div>
-    <figure class="hero-art">{{ partial "schematic.html" . }}<figcaption class="mono">Schematic of the lab. Numbers below come from the same data file the Lab page uses.</figcaption></figure>
+    <figure class="hero-art">{{ partial "schematic.html" . }}</figure>
   </div>
 </section>
 
+<div class="wrap live-strip">{{ partial "telemetry.html" "strip" }}</div>
+
 <section class="band" aria-labelledby="h-proof">
   <div class="wrap">
-    <div class="sec-head"><h2 id="h-proof"><span class="idx">01</span>The lab, right now</h2><a href="/lab/">Hardware and stack</a></div>
+    <div class="sec-head"><h2 id="h-proof"><span class="idx">01</span>The lab</h2><a href="/lab/">Architecture and stack</a></div>
     {{ partial "stats.html" . }}
   </div>
 </section>
@@ -22,17 +25,24 @@
 <section class="band" aria-labelledby="h-ship">
   <div class="wrap">
     <div class="sec-head"><h2 id="h-ship"><span class="idx">02</span>Shipped</h2><a href="/projects/">All projects</a></div>
-    <ul class="proj-grid">
-      {{- range site.Params.featuredProjects }}{{ with site.GetPage (printf "/projects/%s" .) }}{{ partial "card.html" . }}{{ end }}{{ end }}
-    </ul>
+    <div class="ship">
+      {{- with site.GetPage "/projects/terraform-provider-truenas" }}{{ partial "feature.html" (dict "page" . "reg" "truenas") }}{{ end }}
+      <ul class="plist">
+        {{- range site.Params.featuredProjects }}{{ if ne . "terraform-provider-truenas" }}{{ with site.GetPage (printf "/projects/%s" .) }}{{ partial "plist.html" . }}{{ end }}{{ end }}{{ end }}
+      </ul>
+    </div>
   </div>
 </section>
 
 <section class="band" aria-labelledby="h-inc">
   <div class="wrap">
-    <div class="sec-head"><h2 id="h-inc"><span class="idx">03</span>Postmortems</h2><a href="/incidents/">All incidents</a></div>
-    <ul class="icards">
-      {{- range first 3 (where site.RegularPages "Section" "incidents").ByDate.Reverse }}{{ partial "icard.html" . }}{{ end }}
+    <div class="sec-head"><h2 id="h-inc"><span class="idx">03</span>Postmortems</h2><a href="/incidents/">All {{ len (where site.RegularPages "Section" "incidents") }}</a></div>
+    <div class="inc-head">
+      <p class="lead">What broke, why, and what changed. Wrong calls stay in.</p>
+      {{ partial "density.html" . }}
+    </div>
+    <ul class="irows">
+      {{- range first 5 (where site.RegularPages "Section" "incidents").ByDate.Reverse }}{{ partial "irow.html" . }}{{ end }}
     </ul>
   </div>
 </section>
@@ -40,18 +50,21 @@
 <section class="band" aria-labelledby="h-start">
   <div class="wrap">
     <div class="sec-head"><h2 id="h-start"><span class="idx">04</span>Start here</h2><a href="/start-here/">Reading list</a></div>
-    <ul class="pcards">
-      {{- range first 6 (.Params.featured | default slice) }}{{ with site.GetPage . }}{{ partial "pcard.html" . }}{{ end }}{{ end }}
-    </ul>
+    <ol class="steps">
+      {{- range $i, $p := first 6 (.Params.featured | default slice) }}{{ with site.GetPage $p }}{{ partial "step.html" (dict "page" . "n" (add $i 1)) }}{{ end }}{{ end }}
+    </ol>
   </div>
 </section>
 
 <section class="band" aria-labelledby="h-new">
   <div class="wrap">
-    <div class="sec-head"><h2 id="h-new"><span class="idx">05</span>Latest</h2><a href="/writing/">All writing</a></div>
-    <ul class="lines">
-      {{- range first 8 (sort (where site.RegularPages "Section" "in" (slice "posts" "incidents")) "Date" "desc") }}{{ partial "line.html" . }}{{ end }}
-    </ul>
+    <div class="sec-head"><h2 id="h-new"><span class="idx">05</span>Latest</h2><a href="/writing/">All {{ len (where site.RegularPages "Section" "in" (slice "posts" "incidents")) }} entries</a></div>
+    <div class="feed">
+      {{- range first 3 ((where site.RegularPages "Section" "in" (slice "posts" "incidents")).GroupByDate "January 2006") }}
+      <h3 class="feed-m">{{ .Key }}</h3>
+      <ul class="feed-l">{{ range sort .Pages "Date" "desc" }}{{ partial "line.html" . }}{{ end }}</ul>
+      {{- end }}
+    </div>
   </div>
 </section>
 

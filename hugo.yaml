@@ -55,6 +55,14 @@ params:
     - saltstice-homelab
     - jellyfin-fork
     - jellyfin-pgsql
+  telemetry:
+    endpoint: https://status.saltstice.com/api/v1
+    series:
+      - {q: "public:cpu_utilization:ratio", label: CPU, note: cluster utilization, fmt: pct}
+      - {q: "public:memory_utilization:ratio", label: Memory, note: cluster utilization, fmt: pct}
+      - {q: "public:nodes_ready:count", label: Nodes ready, note: Kubernetes nodes, fmt: count}
+      - {q: "public:pods_running:count", label: Pods running, note: across the cluster, fmt: count}
+      - {q: "public:targets_healthy:ratio", label: Targets healthy, note: scrape targets up, fmt: pct}
   hero:
     eyebrow: Platform engineer
     title: Running a production homelab as code.

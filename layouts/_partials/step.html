@@ -1,0 +1,10 @@
+{{- /* Numbered reading-path entry. Pass a dict: page, n. */ -}}
+{{- $t := partial "ptype.html" .page -}}
+<li class="step">
+  <span class="num" aria-hidden="true">{{ printf "%02d" .n }}</span>
+  <div>
+    <h3><a href="{{ .page.RelPermalink }}">{{ .page.Title }}</a></h3>
+    {{- with .page.Params.summary }}<p>{{ . | plainify | truncate 120 }}</p>{{ end }}
+    <p class="meta">{{ partial "chip.html" $t }}<time datetime="{{ .page.Date.Format "2006-01-02" }}">{{ .page.Date.Format "Jan 2006" }}</time></p>
+  </div>
+</li>

@@ -1,13 +1,7 @@
 {{- /* Deterministic cover art from the title and tags. Pass the page. Classes only, no inline style. */ -}}
 {{- $t := partial "ptype.html" . -}}
-{{- $key := printf "%s %s %s" (delimit (.Params.tags | default slice) " ") (delimit (.Params.topics | default slice) " ") .Title | lower -}}
-{{- $m := "code" -}}
-{{- if eq $t "incident" }}{{ $m = "trace" }}
-{{- else if or (strings.Contains $key "network") (strings.Contains $key "cilium") (strings.Contains $key "dns") (strings.Contains $key "bgp") (strings.Contains $key "vlan") (strings.Contains $key "wifi") }}{{ $m = "graph" }}
-{{- else if or (strings.Contains $key "kubernetes") (strings.Contains $key "flux") (strings.Contains $key "karpenter") (strings.Contains $key "autoscal") (strings.Contains $key "jellyfin") (strings.Contains $key "helm") }}{{ $m = "grid" }}
-{{- else if or (strings.Contains $key "storage") (strings.Contains $key "truenas") (strings.Contains $key "iscsi") (strings.Contains $key "backup") (strings.Contains $key "postgres") (strings.Contains $key "harbor") (strings.Contains $key "ups") }}{{ $m = "stack" }}
-{{- else if or (strings.Contains $key "sops") (strings.Contains $key "credential") (strings.Contains $key "security") (strings.Contains $key "sso") (strings.Contains $key "secret") (strings.Contains $key "npu") }}{{ $m = "rings" }}
-{{- end -}}
+{{- $h := hash.FNV32a .Title -}}
+{{- $m := index (slice "graph" "grid" "stack" "rings" "trace" "code") (mod (div $h 7) 6) -}}
 {{- $x := hash.FNV32a .Title -}}
 {{- $r := slice -}}
 {{- range seq 48 }}{{ $x = mod (add (mul $x 1103515245) 12345) 2147483648 }}{{ $r = $r | append (mod (div $x 65536) 100) }}{{ end -}}

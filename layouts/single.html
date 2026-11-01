@@ -6,7 +6,19 @@
   {{- with .Params.summary }}<p class="lede">{{ . }}</p>{{ end }}
   <div class="lab-art">{{ partial "schematic.html" . }}</div>
 </header>
-<div class="wrap lab-stats">{{ partial "stats.html" . }}<a class="link-card lab-live" href="/telemetry/">Live telemetry, the public dashboard</a></div>
+<div class="wrap lab-stats">{{ partial "stats.html" . }}</div>
+<section class="wrap lab-tele" id="telemetry" aria-labelledby="h-tele">
+  <div class="sec-head"><h2 id="h-tele"><span class="idx">LIVE</span>Telemetry</h2></div>
+  {{ partial "telemetry.html" "full" }}
+</section>
+{{- else if eq .File.Path "telemetry.md" }}
+<header class="wrap page-head">
+  {{- partial "crumbs.html" . }}
+  <h1>Live telemetry</h1>
+  <p class="lede">Cluster numbers from the last two hours, drawn in your browser from a read-only feed.</p>
+</header>
+<section class="wrap lab-tele" aria-label="Telemetry">{{ partial "telemetry.html" "full" }}
+  <p class="tele-more"><a href="/lab/">Hardware, network and stack on the Lab page</a></p></section>
 {{- else }}
 <header class="wrap page-head">
   {{- partial "crumbs.html" . }}
@@ -14,12 +26,14 @@
   {{- with .Params.summary | default .Description }}<p class="lede">{{ . }}</p>{{ end }}
 </header>
 {{- end }}
+{{- if ne .File.Path "telemetry.md" }}
 <div class="wrap art-grid">
   {{- if and (ne .Params.showToc false) (gt (len .TableOfContents) 80) }}
   <aside class="toc" aria-label="Contents"><details><summary>Contents</summary><nav>{{ .TableOfContents }}</nav></details></aside>
   {{- end }}
   <div class="prose">{{ .Content }}</div>
 </div>
+{{- end }}
 {{- if eq .File.Path "about.md" }}
 <div class="wrap band-contact reach-wrap">
   <div class="reach">

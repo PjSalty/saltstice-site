@@ -1,0 +1,20 @@
+{{- /* Feature block for a Terraform provider. Pass a dict: page, reg. */ -}}
+{{- $rv := partial "regver.html" .reg -}}
+{{- $minor := printf "%s.%s" (index (split $rv.version ".") 0) (index (split $rv.version ".") 1) -}}
+<article class="feature">
+  <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Terraform provider, on the registry</p>
+  <h3><a href="{{ .page.RelPermalink }}">{{ .page.Title }}</a></h3>
+  <p class="lead">{{ .page.Params.summary }}</p>
+  <dl class="spec">
+    <div><dt>Version</dt><dd>v{{ $rv.version }}</dd></div>
+    {{- if $rv.downloads }}<div><dt>Downloads</dt><dd>{{ lang.FormatNumber 0 $rv.downloads }}</dd></div>{{ end }}
+    <div><dt>License</dt><dd>MPL-2.0</dd></div>
+  </dl>
+  <div class="code" data-lang="hcl"><div class="code-bar"><span class="lang">hcl</span></div><pre class="chroma"><code>required_providers {
+  {{ .reg }} = {
+    source  = "PjSalty/{{ .reg }}"
+    version = "~&gt; {{ $minor }}"
+  }
+}</code></pre></div>
+  <p class="cta"><a class="btn btn-primary" href="{{ .page.RelPermalink }}">Read the write-up</a><a class="btn" href="https://registry.terraform.io/providers/PjSalty/{{ .reg }}/latest" rel="noopener">Registry</a></p>
+</article>
