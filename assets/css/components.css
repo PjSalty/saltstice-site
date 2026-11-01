@@ -301,3 +301,93 @@
 .is-down .tele-grid{display:none}
 .stat .v{white-space:nowrap}
 .stat .v small{font-size:.42em}
+
+/* architecture view */
+.arch-canvas{overflow:hidden}
+.arch-svg{display:block;width:100%;height:auto}
+.arch .band{fill:transparent;stroke:none}
+.arch .layer:nth-child(odd) .band:not(.band-host){fill:color-mix(in srgb,var(--bg2) 55%,transparent)}
+.arch .band-host{fill:color-mix(in srgb,var(--bg2) 80%,transparent);stroke:var(--acc);stroke-width:1.2;stroke-dasharray:1 0}
+.arch .lbl-layer{font:600 10px var(--mono);letter-spacing:.12em;fill:var(--fg3)}
+.arch .lbl-host{font:600 14px var(--sans);fill:var(--fg);letter-spacing:-.01em}
+.arch .lbl-spec{font:500 10px var(--mono);fill:var(--fg3)}
+.arch .group rect{fill:color-mix(in srgb,var(--bg) 55%,transparent);stroke:var(--line);stroke-width:1}
+.arch .group text{font:600 10px var(--mono);letter-spacing:.06em;fill:var(--fg2);text-transform:uppercase}
+.arch .nd rect{fill:var(--bg2);stroke:var(--line2);stroke-width:1.2;transition:stroke .15s}
+.arch .nl{font:600 10.5px var(--mono);fill:var(--fg)}
+.arch .ns{font:500 9.5px var(--mono);fill:var(--fg3)}
+.arch .nd{cursor:default;outline:none}
+.arch .nd:hover rect,.arch .nd:focus-visible rect{stroke:var(--acc)}
+.arch .nd.off{opacity:.5}
+.arch .unv rect,.unv-sample{stroke-dasharray:4 3}
+.unv-sample{fill:none;stroke:var(--fg3);stroke-width:1.2}
+.arch .k-router rect,.arch .k-switch rect,.arch .k-ap rect{stroke:var(--cool)}
+.arch .k-k8s-control rect,.arch .k-k8s-worker rect,.arch .k-k8s-pool rect{stroke:var(--acc)}
+.arch .k-storage rect,.arch .k-backup rect,.arch .k-database rect,.arch .k-cache rect{stroke:var(--ok)}
+.arch .k-cloudflare rect,.arch .k-external rect,.arch .k-client rect,.arch .k-github rect,.arch .k-isp rect{stroke:var(--fg3)}
+.arch .k-cloudflare .ns,.arch .k-client .ns{fill:var(--fg3)}
+.arch .lk{fill:none;stroke:var(--fg3);stroke-width:1;opacity:.2;transition:opacity .2s,stroke-width .2s}
+.arch .lk-bgp{stroke:var(--acc);stroke-width:1.8;opacity:.8}
+.arch .lk-iscsi,.arch .lk-nfs,.arch .lk-s3,.arch .lk-backup{stroke:var(--ok)}
+.arch .lk-nfs{stroke-dasharray:6 3}.arch .lk-backup,.arch .lk-s3{stroke-dasharray:2 3}
+.arch .lk-wireguard,.arch .lk-tunnel{stroke:var(--cool);stroke-dasharray:8 4}
+.arch .lk-https,.arch .lk-http{stroke:var(--fg2)}
+.arch .lk-dns{stroke:var(--syn-ty)}
+.arch .lk-gitops{stroke:var(--syn-fn);stroke-dasharray:5 3}
+.arch .lk-metrics,.arch .lk-logs,.arch .lk-federate{stroke:var(--fg3);stroke-dasharray:1 4;stroke-linecap:round}
+.arch .lk-sql,.arch .lk-redis{stroke:var(--warn)}
+.arch .lk-trunk{stroke-width:2;stroke:var(--fg2)}
+.arch-hero .lk{opacity:.4}
+.arch-hero .lk-bgp{animation:flow 1.6s linear infinite;stroke-dasharray:4 7}
+.arch-hero .lk-iscsi{animation:flow 2.6s linear infinite;stroke-dasharray:4 7}
+.arch-bar{display:flex;flex-wrap:wrap;gap:14px 36px;align-items:center;justify-content:space-between;margin-bottom:18px}
+.arch-layers{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.arch .lab,.arch-layers .lab{font:600 .66rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--fg3)}
+.tog{display:inline-flex;gap:7px;align-items:center;font:500 .8rem var(--sans);color:var(--fg2);cursor:pointer}
+.tog input{accent-color:var(--acc);width:15px;height:15px}
+.arch-legend{list-style:none;display:flex;flex-wrap:wrap;gap:6px 16px;font:500 .72rem var(--mono);color:var(--fg2)}
+.arch-legend li{display:inline-flex;align-items:center;gap:6px}
+.arch-legend svg{width:28px;height:10px;overflow:visible}
+.arch-legend .lk{opacity:1}
+.arch-legend{--x:0}
+.arch-info{min-height:84px;margin-top:10px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg2)}
+.arch-hint{color:var(--fg3);font-size:.9rem}
+.arch-info b{font-size:1.05rem}
+.arch-info .kind{margin-left:10px;font:600 .68rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--acc)}
+.arch-info .role,.arch-info .specs{display:block;color:var(--fg2);font-size:.9rem;margin-top:4px}
+.arch-info .specs{font:500 .76rem var(--mono);color:var(--fg3)}
+/* trace states */
+.arch.tracing .nd{opacity:.28}.arch.tracing .lk{opacity:.1}
+.arch.tracing .nd.on{opacity:1}.arch.tracing .nd.on rect{stroke:var(--acc);stroke-width:2}
+.arch.tracing .lk.on{opacity:1;stroke:var(--acc);stroke-width:2.6;stroke-dasharray:none}
+.arch.tracing .nd.hl{opacity:1}
+.arch .pkt{fill:var(--acc);filter:drop-shadow(0 0 4px var(--acc))}
+.arch .layer.is-off,.arch .group.is-off,.arch .nd.is-off,.arch .lk.is-off{display:none}
+.arch-stack{display:none}
+.trace{margin-top:48px}
+.trace-pick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.path-btn[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.path{margin-bottom:32px;max-width:760px}
+.path header{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+.path h3{font:600 1.2rem/1.2 var(--sans);letter-spacing:-.01em}
+.hops{list-style:none;margin-top:16px;border-left:1px solid var(--line2);margin-left:11px}
+.hops li{display:grid;grid-template-columns:24px 1fr;gap:12px;padding:8px 0 8px 0;margin-left:-12px;opacity:1;transition:opacity .2s}
+.hops .n{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--bg);border:1px solid var(--line2);font:600 .7rem var(--mono);color:var(--fg2)}
+.hops b{display:block;font-size:.98rem}
+.hops span+span,.hops div span{color:var(--fg2);font-size:.9rem;line-height:1.5}
+.hops li.on .n{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.js .path{display:none}.js .path.on{display:block}
+.js .tracing-run .hops li:not(.on){opacity:.45}
+.arch-stack .stack-layer{margin-bottom:22px}
+.arch-stack h3{font:600 .72rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--fg3);margin-bottom:10px}
+.chips{list-style:none;display:grid;gap:8px}
+.chip-node{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg2);display:grid;gap:2px}
+.chip-node b{font-size:.92rem}.chip-node span{font-size:.82rem;color:var(--fg2)}
+.chip-node.off{opacity:.55}.chip-node.unv{border-style:dashed}
+@media (max-width:959px){.arch-canvas,.arch-info,.arch-bar{display:none}.arch-stack{display:block}.js .path{display:block}.js .path-btn,.trace-pick{display:none}.path-ctl{display:none}}
+.lab-arch{margin-top:8px}
+@media (prefers-reduced-motion:reduce){.arch-hero .lk{animation:none}}
+
+.arch .nd:hover~*{}
+.arch.hover .lk{opacity:.06}.arch.hover .lk.hl{opacity:1;stroke-width:2}.arch.hover .nd:not(.hl){opacity:.4}.arch.hover .nd.hl{opacity:1}
+.lab-tele{margin-bottom:56px}

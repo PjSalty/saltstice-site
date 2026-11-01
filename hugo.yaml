@@ -55,6 +55,24 @@ params:
     - saltstice-homelab
     - jellyfin-fork
     - jellyfin-pgsql
+  topology:
+    host: r740xd
+    layers:
+      - {id: internet, label: Internet and remote site, zones: [z-internet, z-remote]}
+      - {id: edge, label: Edge and network core, zones: [z-edge, z-client], cols: 5}
+      - {id: host, label: Proxmox host, zones: [z-mgmt, z-infra, z-storage, z-dmz, z-cluster], cols: 5, labels: {z-cluster: Kubernetes nodes}}
+      - id: cluster
+        label: Kubernetes services
+        zones: [z-cluster, z-infra]
+        cols: 3
+        groups:
+          - {label: Traffic and DNS, ids: [bgp-speaker, cilium, traefik, traefik-dmz, cloudflared, cert-manager, external-dns]}
+          - {label: GitOps and policy, ids: [flux, kyverno, netpol, karpenter, harbor-proxy, ci-pipeline]}
+          - {label: Apps, ids: [jellyfin, jf-postgres, jf-valkey, internal-apps, authentik, dmz-apps]}
+          - {label: Observability, ids: [prometheus, alertmanager, grafana, loki, alloy, node-exporters, tempo, prom-public, grafana-public]}
+          - {label: Storage and backup, ids: [truenas-csi, nfs-csi, velero, seaweedfs]}
+      - {id: storage, label: TrueNAS storage, zones: [z-storage], cols: 5}
+    hero: [visitor, cloudflare, rb4011, crs317, crs328, vm-masters, vm-worker-1, vm-worker-2, vm-worker-3, pool-ci, vm-truenas, bgp-speaker, cilium, traefik, flux, pool-tank]
   telemetry:
     endpoint: https://status.saltstice.com/api/v1
     series:

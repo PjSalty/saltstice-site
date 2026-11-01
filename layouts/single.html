@@ -4,13 +4,21 @@
   {{- partial "crumbs.html" . }}
   <h1>{{ .Title }}</h1>
   {{- with .Params.summary }}<p class="lede">{{ . }}</p>{{ end }}
-  <div class="lab-art">{{ partial "schematic.html" . }}</div>
-</header>
+  </header>
+
 <div class="wrap lab-stats">{{ partial "stats.html" . }}</div>
 <section class="wrap lab-tele" id="telemetry" aria-labelledby="h-tele">
   <div class="sec-head"><h2 id="h-tele"><span class="idx">LIVE</span>Telemetry</h2></div>
   {{ partial "telemetry.html" "full" }}
 </section>
+{{- if site.Data.topology }}
+<section class="wrap lab-arch" aria-labelledby="h-arch">
+  <div class="sec-head"><h2 id="h-arch"><span class="idx">MAP</span>Architecture</h2></div>
+  {{ partial "topology.html" (dict "mode" "full") }}
+</section>
+{{- else }}
+<div class="wrap"><div class="lab-art">{{ partial "schematic.html" . }}</div></div>
+{{- end }}
 {{- else if eq .File.Path "telemetry.md" }}
 <header class="wrap page-head">
   {{- partial "crumbs.html" . }}

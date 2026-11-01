@@ -1,0 +1,363 @@
+meta:
+  verified: "2026-11-01"
+  notes: "Built from live MCP reads (Proxmox, Kubernetes, MetalLB, MikroTik, TrueNAS, UniFi, Karpenter, Velero) and origin/main of the Kubernetes repo. Names and roles only; no addresses. Nodes marked unverified: true could not be confirmed live."
+
+zones:
+  - {id: z-internet, label: Internet, kind: internet, description: "Public internet, Cloudflare edge and GitHub Pages."}
+  - {id: z-edge, label: Edge and network core, kind: edge, description: "ISP uplink, router, switches, access points and power."}
+  - {id: z-mgmt, label: Management VLAN, kind: vlan, description: "Out-of-band management: switches, hypervisor management and iDRAC."}
+  - {id: z-infra, label: Infrastructure VLAN, kind: vlan, description: "Core VMs: DNS, Git, registry, CI runner, load balancers, game server, Wi-Fi controller."}
+  - {id: z-k8s, label: Kubernetes VLAN, kind: vlan, description: "Kubernetes nodes and pod traffic."}
+  - {id: z-storage, label: Storage VLAN, kind: storage, description: "TrueNAS data path for NFS and iSCSI."}
+  - {id: z-apps, label: Applications VLAN, kind: vlan, description: "Load-balancer address pool for user-facing services; Traefik VIP lives here."}
+  - {id: z-dmz, label: DMZ VLAN, kind: vlan, description: "Internet-exposed helpers: VPN endpoint and the DMZ ingress pool."}
+  - {id: z-client, label: Client VLANs, kind: vlan, description: "Trusted, Wireless, Byte-me, IoT and Guest networks, with different reach into the core."}
+  - {id: z-cluster, label: Kubernetes cluster, kind: cluster, description: "RKE2 cluster managed by Flux. Overlay across the Kubernetes VLAN."}
+  - {id: z-remote, label: Remote site, kind: external, description: "Second location joined by a WireGuard tunnel."}
+
+nodes:
+  # --- internet / external
+  - {id: visitor, label: Public visitor, kind: client, zone: z-internet, role: "Anonymous web visitor", tags: [public]}
+  - {id: wan-client, label: Remote Jellyfin client, kind: client, zone: z-internet, role: "Phone, TV or browser outside the house", tags: [public]}
+  - {id: admin-client, label: Admin laptop, kind: client, zone: z-internet, role: "Owner connecting over VPN", tags: [admin]}
+  - {id: game-players, label: Game players, kind: client, zone: z-internet, role: "Players on the internet", tags: [public]}
+  - {id: cloudflare, label: Cloudflare, kind: cloudflare, zone: z-internet, role: "DNS, CDN/proxy, Zero Trust tunnel edge, DNS-01 for certificates", tags: [dns, cdn, tunnel]}
+  - {id: github-pages, label: GitHub Pages, kind: github, zone: z-internet, role: "Hosts the saltstice.com portfolio site", tags: [static], unverified: true}
+  - {id: letsencrypt, label: Let's Encrypt, kind: external, zone: z-internet, role: "ACME CA for wildcard certificates", tags: [tls]}
+  - {id: pushover, label: Push notifications, kind: external, zone: z-internet, role: "Alert delivery (critical, warning, info receivers)", tags: [alerts]}
+
+  # --- edge
+  - {id: isp, label: ISP uplink, kind: isp, zone: z-edge, role: "Single residential WAN uplink", specs: ["single WAN port on router"], unverified: true, tags: [wan]}
+  - {id: rb4011, label: MikroTik RB4011, kind: router, zone: z-edge, role: "Core router: inter-VLAN routing and firewall, NAT and port forwards, BGP peer for Kubernetes, DNS enforcement, WireGuard", specs: ["RouterOS", "BGP with Kubernetes nodes", "two WireGuard interfaces"], tags: [router, firewall]}
+  - {id: crs317, label: MikroTik CRS317, kind: switch, zone: z-edge, role: "10G SFP+ aggregation switch toward the hypervisor", specs: ["16x SFP+ class"], tags: [10g]}
+  - {id: crs328, label: MikroTik CRS328, kind: switch, zone: z-edge, role: "PoE access switch for APs and wired clients", specs: ["24x GbE PoE class"], tags: [poe]}
+  - {id: ap-fleet, label: Access points (4), kind: ap, zone: z-edge, role: "Three home APs (U6 Lite x2, AC LR) plus one U7 Pro XG at the remote site", specs: ["4 online"], count: 4, tags: [wifi]}
+  - {id: ups, label: UPS, kind: ups, zone: z-edge, role: "Battery backup for rack", unverified: true, tags: [power]}
+  - {id: hex-s, label: MikroTik hEX S (remote), kind: router, zone: z-remote, role: "Remote-site router, WireGuard client to the RB4011", tags: [remote, wireguard]}
+  - {id: remote-ap, label: Remote-site AP, kind: ap, zone: z-remote, role: "U7 Pro XG managed by the home Wi-Fi controller over the tunnel", tags: [wifi, remote]}
+
+  # --- host
+  - {id: r740xd, label: Dell PowerEdge R740xd, kind: host, zone: z-infra, role: "Single Proxmox VE hypervisor running every VM", specs: ["2x Xeon Gold 6242R (40 cores / 80 threads)", "256 GiB RAM", "NVIDIA RTX A2000 GPU passthrough to one worker", "iDRAC for out-of-band"], tags: [proxmox, hypervisor]}
+  - {id: idrac, label: iDRAC, kind: service, zone: z-mgmt, parent: r740xd, role: "Out-of-band management; Redfish read by monitoring", tags: [oob]}
+
+  # --- infra VMs
+  - {id: vm-truenas, label: truenas, kind: vm, zone: z-storage, parent: r740xd, role: "TrueNAS SCALE storage appliance (NFS, iSCSI, SMB, S3-backed backups target)", specs: ["4 vCPU", "32 GiB RAM"], status: running, tags: [storage]}
+  - {id: vm-harbor, label: harbor, kind: registry, zone: z-infra, parent: r740xd, role: "Container registry and Docker Hub proxy cache", specs: ["4 vCPU", "8 GiB"], status: running, tags: [registry]}
+  - {id: vm-forge, label: git-forge, kind: vm, zone: z-infra, parent: r740xd, role: "Git hosting, CI/CD pipelines, source of truth for GitOps", specs: ["6 vCPU", "12 GiB"], status: running, tags: [git, ci]}
+  - {id: vm-netbox, label: netbox, kind: vm, zone: z-infra, parent: r740xd, role: "IPAM / DCIM inventory", specs: ["2 vCPU", "4 GiB"], status: running, tags: [inventory]}
+  - {id: vm-adguard, label: adguard, kind: dns, zone: z-infra, parent: r740xd, role: "Primary DNS resolver with wildcard split-horizon rewrite", specs: ["2 vCPU", "2 GiB"], status: running, tags: [dns]}
+  - {id: vm-adguard-2, label: adguard-2, kind: dns, zone: z-infra, parent: r740xd, role: "Secondary DNS resolver (HA pair, shared virtual IP)", specs: ["2 vCPU", "2 GiB"], status: running, tags: [dns, ha]}
+  - {id: vm-ci-runner, label: ci-runner, kind: ci, zone: z-infra, parent: r740xd, role: "Shell CI runner for Terraform and Ansible deploy jobs", specs: ["4 vCPU", "8 GiB"], status: running, tags: [ci]}
+  - {id: vm-haproxy-1, label: haproxy-1, kind: lb, zone: z-infra, parent: r740xd, role: "Kubernetes API load balancer (active), keepalived pair", specs: ["2 vCPU", "2 GiB"], status: running, tags: [ha, api]}
+  - {id: vm-haproxy-2, label: haproxy-2, kind: lb, zone: z-infra, parent: r740xd, role: "Kubernetes API load balancer (standby), keepalived pair", specs: ["2 vCPU", "2 GiB"], status: running, tags: [ha, api]}
+  - {id: vm-amp, label: amp, kind: vm, zone: z-infra, parent: r740xd, role: "Game-server host managed by AMP (Minecraft, Terraria, Factorio, CS2, RimWorld, Warcraft III services)", specs: ["4 vCPU", "16 GiB"], status: running, tags: [game]}
+  - {id: vm-unifi-os, label: unifi-os, kind: vm, zone: z-infra, parent: r740xd, role: "UniFi OS Wi-Fi controller", specs: ["4 vCPU", "8 GiB"], status: running, tags: [wifi, controller]}
+  - {id: vm-vpn, label: vpn, kind: vpn, zone: z-dmz, parent: r740xd, role: "WireGuard admin VPN endpoint (wg-easy)", specs: ["8 vCPU", "2 GiB"], status: stopped, tags: [vpn]}
+  - {id: vm-dispatcher, label: dispatcher, kind: vm, zone: z-infra, parent: r740xd, role: "Automation dispatcher (decommissioned, kept stopped)", specs: ["2 vCPU", "4 GiB"], status: stopped, tags: [automation]}
+  - {id: vm-posthog, label: posthog, kind: vm, zone: z-infra, parent: r740xd, role: "Product analytics (stopped)", specs: ["6 vCPU", "16 GiB"], status: stopped, tags: [analytics]}
+  - {id: vm-test-truenas, label: test-truenas (+2 versions), kind: vm, zone: z-infra, parent: r740xd, role: "Disposable TrueNAS test VMs for Terraform provider testing: one running, two stopped", specs: ["2 vCPU", "8 GiB each"], count: 3, status: running, tags: [test]}
+  - {id: vm-templates, label: VM templates (2), kind: vm, zone: z-infra, parent: r740xd, role: "Debian 13 cloud-init template and Karpenter worker template", count: 2, status: stopped, tags: [template]}
+
+  # --- k8s VMs
+  - {id: vm-masters, label: k8s-master-1..3, kind: k8s-control, zone: z-cluster, parent: r740xd, role: "RKE2 control plane + etcd, tainted so no apps run here", specs: ["3 VMs", "4 vCPU / 10 GiB each"], count: 3, status: running, tags: [rke2, control-plane]}
+  - {id: vm-worker-1, label: k8s-worker-1, kind: k8s-worker, zone: z-cluster, parent: r740xd, role: "GPU worker (RTX A2000 passthrough, NVIDIA device plugin)", specs: ["8 vCPU", "32 GiB", "GPU"], status: running, tags: [gpu, worker]}
+  - {id: vm-worker-2, label: k8s-worker-2, kind: k8s-worker, zone: z-cluster, parent: r740xd, role: "General worker", specs: ["4 vCPU", "16 GiB"], status: running, tags: [worker]}
+  - {id: vm-worker-3, label: k8s-worker-3, kind: k8s-worker, zone: z-cluster, parent: r740xd, role: "General worker", specs: ["4 vCPU", "16 GiB"], status: running, tags: [worker]}
+  - {id: pool-ci, label: ci-pool (Karpenter), kind: k8s-pool, zone: z-cluster, parent: r740xd, role: "Autoscaled, tainted CI build workers; created on demand from a VM template, removed when empty (24 h max age)", specs: ["limit 16 vCPU / 24 GiB", "instance sizes 2x8, 4x16, 8x16"], count: 2, status: running, tags: [karpenter, autoscaled]}
+  - {id: pool-general, label: Karpenter general pools, kind: k8s-pool, zone: z-cluster, parent: r740xd, role: "Standard, compute and memory pools defined but capped at zero nodes", count: 0, status: stopped, tags: [karpenter, idle]}
+
+  # --- network services
+  - {id: bgp-speaker, label: MetalLB (BGP speaker), kind: lb, zone: z-cluster, role: "Assigns load-balancer addresses and announces each as a /32 over BGP to the RB4011", tags: [metallb, bgp]}
+  - {id: cilium, label: Cilium CNI, kind: service, zone: z-cluster, role: "eBPF CNI: kube-proxy replacement, native routing, DSR with Maglev, host firewall, Hubble relay", tags: [cni, ebpf]}
+  - {id: traefik, label: Traefik (main), kind: ingress, zone: z-cluster, role: "Primary ingress: entrypoints web, websecure, jellyfin-wan, metrics; 3-6 replicas via HPA", tags: [ingress]}
+  - {id: traefik-dmz, label: Traefik (DMZ), kind: ingress, zone: z-cluster, role: "Isolated ingress for DMZ-published apps: websecure and metrics only, CRD-only, no ExternalName", tags: [ingress, dmz]}
+  - {id: cloudflared, label: cloudflared, kind: service, zone: z-cluster, role: "Outbound-only Cloudflare tunnel connector (HPA-scaled); routes configured in Cloudflare Zero Trust", tags: [tunnel]}
+  - {id: cert-manager, label: cert-manager, kind: service, zone: z-cluster, role: "Issues wildcard TLS via Let's Encrypt using DNS-01 on Cloudflare", tags: [tls]}
+  - {id: external-dns, label: external-dns / DNS sync, kind: service, zone: z-cluster, role: "Syncs public DNS records into Cloudflare from cluster state (CronJob) ; internal records handled by an AdGuard sync job", tags: [dns]}
+  - {id: kyverno, label: Kyverno, kind: service, zone: z-cluster, role: "Admission policy engine (security baselines, no apps on control plane)", tags: [policy]}
+  - {id: netpol, label: NetworkPolicies, kind: service, zone: z-cluster, role: "Default-deny ingress and egress per namespace with explicit allows", tags: [policy]}
+  - {id: flux, label: Flux, kind: gitops, zone: z-cluster, role: "Reconciles the cluster from Git: manifests source plus a separate SOPS-encrypted secrets source", tags: [gitops]}
+  - {id: karpenter, label: Karpenter (Proxmox provider), kind: service, zone: z-cluster, role: "Creates and deletes CI worker VMs on demand", tags: [autoscaling]}
+
+  # --- apps
+  - {id: jellyfin, label: Jellyfin pods, kind: service, zone: z-cluster, role: "Media server, multiple pods, GPU transcoding capable", tags: [media]}
+  - {id: jf-postgres, label: Jellyfin PostgreSQL, kind: database, zone: z-cluster, role: "Database for Jellyfin", tags: [sql]}
+  - {id: jf-valkey, label: Jellyfin Valkey, kind: cache, zone: z-cluster, role: "Redis-compatible cache for Jellyfin", tags: [redis]}
+  - {id: internal-apps, label: Internal apps, kind: service, zone: z-cluster, role: "SSO (Authentik), docs, dashboards, notifications and other LAN-only services behind Traefik", tags: [apps]}
+  - {id: authentik, label: Authentik SSO, kind: service, zone: z-cluster, role: "Identity provider and forward-auth for protected routes", tags: [sso]}
+  - {id: dmz-apps, label: DMZ apps, kind: service, zone: z-cluster, role: "Internet-facing chat/community services published through the DMZ ingress", tags: [dmz]}
+  - {id: grafana-public, label: Grafana (public status), kind: observability, zone: z-cluster, role: "Read-only status dashboards served at status.saltstice.com with rate limiting", tags: [status, public]}
+  - {id: prom-public, label: Prometheus (public), kind: observability, zone: z-cluster, role: "Isolated Prometheus that stores only five pre-aggregated public series, pulled by federation", tags: [status, public]}
+  - {id: prometheus, label: Prometheus, kind: observability, zone: z-cluster, role: "Main metrics store (kube-prometheus-stack); scrapes nodes, VMs, router, switches, iDRAC, Proxmox, TrueNAS", tags: [metrics]}
+  - {id: alertmanager, label: Alertmanager, kind: observability, zone: z-cluster, role: "Routes alerts to push notification receivers by severity", tags: [alerts]}
+  - {id: grafana, label: Grafana, kind: observability, zone: z-cluster, role: "Internal dashboards behind SSO", tags: [dashboards]}
+  - {id: loki, label: Loki, kind: observability, zone: z-cluster, role: "Log storage", tags: [logs]}
+  - {id: alloy, label: Alloy, kind: observability, zone: z-cluster, role: "Log and telemetry collector DaemonSet", tags: [logs]}
+  - {id: node-exporters, label: Exporters, kind: observability, zone: z-cluster, role: "node-exporter on VMs, plus Proxmox, TrueNAS, router, switch and iDRAC exporters", tags: [metrics]}
+  - {id: tempo, label: Tempo, kind: observability, zone: z-cluster, role: "Distributed tracing store", tags: [traces]}
+  - {id: velero, label: Velero, kind: backup, zone: z-cluster, role: "Kubernetes backup: scheduled daily and weekly backups, 7-day and 28-day retention", tags: [backup]}
+  - {id: seaweedfs, label: SeaweedFS S3, kind: storage, zone: z-cluster, role: "In-cluster S3 object store used as the Velero backup location", tags: [s3]}
+  - {id: truenas-csi, label: truenas-csi driver, kind: service, zone: z-cluster, role: "CSI driver provisioning iSCSI volumes as zvols on TrueNAS (storage class truenas-iscsi)", tags: [csi, iscsi]}
+  - {id: nfs-csi, label: NFS client provisioner, kind: service, zone: z-cluster, role: "Dynamic NFS volumes from TrueNAS (storage class nfs-client)", tags: [csi, nfs]}
+  - {id: harbor-proxy, label: Image pulls via Harbor, kind: service, zone: z-cluster, role: "Cluster pulls images from Harbor, including a Docker Hub proxy project", tags: [registry]}
+
+  # --- storage
+  - {id: pool-tank, label: ZFS pool tank, kind: storage, zone: z-storage, parent: vm-truenas, role: "Main data pool: 12-disk RAIDZ2 vdev, ~72 TB raw, healthy, scrubbed", specs: ["RAIDZ2", "12 disks"], tags: [zfs]}
+  - {id: ds-media, label: Media datasets, kind: storage, zone: z-storage, parent: pool-tank, role: "Media library and ingest drop, shared by NFS", tags: [nfs, media]}
+  - {id: ds-k8s, label: Kubernetes datasets, kind: storage, zone: z-storage, parent: pool-tank, role: "NFS PV data and Jellyfin config/cache/transcode scratch", tags: [nfs]}
+  - {id: ds-iscsi, label: iSCSI zvols, kind: storage, zone: z-storage, parent: pool-tank, role: "16 CSI-provisioned iSCSI targets, one per database/stateful PVC", count: 16, tags: [iscsi]}
+  - {id: ds-backups, label: Backup datasets, kind: backup, zone: z-storage, parent: pool-tank, role: "Proxmox vzdump backups and SeaweedFS backup copies", tags: [backup]}
+  - {id: boot-pool, label: Hypervisor ZFS pool, kind: storage, zone: z-infra, parent: r740xd, role: "Local ZFS (VM system disks) on the hypervisor", unverified: true, tags: [zfs]}
+
+  # --- client VLAN nodes
+  - {id: lan-clients, label: LAN clients, kind: client, zone: z-client, role: "Trusted and Wireless VLAN devices", tags: [lan]}
+  - {id: byteme-clients, label: Byte-me clients, kind: client, zone: z-client, role: "Trusted Wi-Fi VLAN, DNS plus Traefik apps plus internet only", tags: [wifi]}
+  - {id: iot-clients, label: IoT and Guest, kind: client, zone: z-client, role: "Internet only; blocked from all private ranges", tags: [isolated]}
+  - {id: ci-pipeline, label: CI pipeline, kind: ci, zone: z-infra, role: "Pipelines: Go/Terraform/Ansible builds, image tags", tags: [ci]}
+
+links:
+  - {id: l-isp-rb, from: isp, to: rb4011, kind: ethernet, label: "WAN uplink"}
+  - {id: l-rb-317, from: rb4011, to: crs317, kind: trunk, label: "VLAN trunk"}
+  - {id: l-rb-328, from: rb4011, to: crs328, kind: trunk, label: "VLAN trunk"}
+  - {id: l-317-host, from: crs317, to: r740xd, kind: trunk, label: "10G trunk to hypervisor"}
+  - {id: l-328-ap, from: crs328, to: ap-fleet, kind: ethernet, label: "PoE"}
+  - {id: l-ups-host, from: ups, to: r740xd, kind: ethernet, label: "power", }
+  - {id: l-host-idrac, from: r740xd, to: idrac, kind: ethernet, label: "iDRAC"}
+  - {id: l-rb-hex, from: rb4011, to: hex-s, kind: wireguard, label: "site-to-site WireGuard"}
+  - {id: l-hex-ap, from: hex-s, to: remote-ap, kind: ethernet, label: "remote AP"}
+  - {id: l-unifi-ap, from: vm-unifi-os, to: ap-fleet, kind: http, label: "controller management"}
+  - {id: l-unifi-rap, from: vm-unifi-os, to: remote-ap, kind: wireguard, label: "managed over tunnel"}
+  - {id: l-bgp, from: bgp-speaker, to: rb4011, kind: bgp, label: "eBGP /32 announcements from all 6 nodes"}
+  - {id: l-vis-cf, from: visitor, to: cloudflare, kind: https, label: "HTTPS"}
+  - {id: l-cf-gh, from: cloudflare, to: github-pages, kind: https, label: "proxied origin fetch"}
+  - {id: l-cf-cloudflared, from: cloudflared, to: cloudflare, kind: tunnel, label: "outbound tunnel (cloudflared dials out)"}
+  - {id: l-cloudflared-traefik, from: cloudflared, to: traefik, kind: https, label: "HTTPS to Traefik"}
+  - {id: l-traefik-gp, from: traefik, to: grafana-public, kind: http, label: "Host rule for the status site"}
+  - {id: l-gp-pp, from: grafana-public, to: prom-public, kind: http, label: "PromQL query"}
+  - {id: l-pp-prom, from: prom-public, to: prometheus, kind: federate, label: "federate 5 aggregate series /60s"}
+  - {id: l-wan-rb, from: wan-client, to: rb4011, kind: https, label: "TCP port forward (Jellyfin WAN port)"}
+  - {id: l-rb-traefik, from: rb4011, to: traefik, kind: https, label: "DNAT to Traefik VIP, jellyfin-wan entrypoint"}
+  - {id: l-traefik-jf, from: traefik, to: jellyfin, kind: http, label: "route to Jellyfin service"}
+  - {id: l-jf-pg, from: jellyfin, to: jf-postgres, kind: sql, label: "PostgreSQL"}
+  - {id: l-jf-valkey, from: jellyfin, to: jf-valkey, kind: redis, label: "Valkey"}
+  - {id: l-jf-media, from: jellyfin, to: ds-media, kind: nfs, label: "media library over NFS"}
+  - {id: l-pg-iscsi, from: jf-postgres, to: ds-iscsi, kind: iscsi, label: "database volume via iSCSI"}
+  - {id: l-lan-dns, from: lan-clients, to: vm-adguard, kind: dns, label: "DNS (forced by router NAT)"}
+  - {id: l-lan-rb, from: lan-clients, to: rb4011, kind: ethernet, label: "default gateway"}
+  - {id: l-lan-traefik, from: rb4011, to: traefik, kind: https, label: "HTTPS to Traefik VIP (BGP route)"}
+  - {id: l-traefik-apps, from: traefik, to: internal-apps, kind: http, label: "IngressRoute to service"}
+  - {id: l-apps-sso, from: traefik, to: authentik, kind: https, label: "forward-auth"}
+  - {id: l-adg-pair, from: vm-adguard, to: vm-adguard-2, kind: dns, label: "config sync, shared VIP"}
+  - {id: l-extdns-cf, from: external-dns, to: cloudflare, kind: https, label: "public DNS records via API"}
+  - {id: l-extdns-adg, from: external-dns, to: vm-adguard, kind: dns, label: "internal records"}
+  - {id: l-cm-cf, from: cert-manager, to: cloudflare, kind: https, label: "DNS-01 challenge"}
+  - {id: l-cm-le, from: cert-manager, to: letsencrypt, kind: https, label: "ACME"}
+  - {id: l-pvc-csi, from: internal-apps, to: truenas-csi, kind: http, label: "PVC claim (truenas-iscsi)"}
+  - {id: l-csi-api, from: truenas-csi, to: vm-truenas, kind: https, label: "TrueNAS API: create zvol + target"}
+  - {id: l-csi-iscsi, from: truenas-csi, to: ds-iscsi, kind: iscsi, label: "node logs in to target"}
+  - {id: l-nfs-nfs, from: nfs-csi, to: ds-k8s, kind: nfs, label: "dynamic NFS volumes"}
+  - {id: l-truenas-pool, from: vm-truenas, to: pool-tank, kind: ethernet, label: "ZFS"}
+  - {id: l-git-ci, from: vm-forge, to: ci-pipeline, kind: gitops, label: "push triggers pipeline"}
+  - {id: l-ci-harbor, from: ci-pipeline, to: vm-harbor, kind: https, label: "push image"}
+  - {id: l-ci-runnerhost, from: ci-pipeline, to: pool-ci, kind: http, label: "Kubernetes executor jobs"}
+  - {id: l-flux-git, from: flux, to: vm-forge, kind: gitops, label: "git pull over SSH"}
+  - {id: l-harbor-cluster, from: harbor-proxy, to: vm-harbor, kind: https, label: "image pull"}
+  - {id: l-flux-cluster, from: flux, to: harbor-proxy, kind: gitops, label: "applies manifests with new tag"}
+  - {id: l-velero-sw, from: velero, to: seaweedfs, kind: s3, label: "S3 backup upload"}
+  - {id: l-sw-nfs, from: seaweedfs, to: ds-backups, kind: backup, label: "scheduled copy to NFS"}
+  - {id: l-vzdump, from: r740xd, to: ds-backups, kind: backup, label: "VM backups over NFS"}
+  - {id: l-karp-pool, from: karpenter, to: pool-ci, kind: https, label: "creates VMs via Proxmox API"}
+  - {id: l-adm-rb, from: admin-client, to: rb4011, kind: wireguard, label: "WireGuard UDP port forward"}
+  - {id: l-rb-vpn, from: rb4011, to: vm-vpn, kind: wireguard, label: "DNAT to VPN endpoint"}
+  - {id: l-vpn-mgmt, from: vm-vpn, to: rb4011, kind: ethernet, label: "routed admin access"}
+  - {id: l-game, from: game-players, to: rb4011, kind: http, label: "game ports (TCP/UDP) port-forwarded"}
+  - {id: l-rb-amp, from: rb4011, to: vm-amp, kind: ethernet, label: "DNAT to game host"}
+  - {id: l-exp-prom, from: node-exporters, to: prometheus, kind: metrics, label: "scrape"}
+  - {id: l-prom-am, from: prometheus, to: alertmanager, kind: metrics, label: "alert rules fire"}
+  - {id: l-am-push, from: alertmanager, to: pushover, kind: https, label: "notify"}
+  - {id: l-alloy-loki, from: alloy, to: loki, kind: logs, label: "push logs"}
+  - {id: l-graf-prom, from: grafana, to: prometheus, kind: http, label: "dashboards"}
+  - {id: l-graf-loki, from: grafana, to: loki, kind: http, label: "log queries"}
+  - {id: l-traefik-dmz, from: rb4011, to: traefik-dmz, kind: https, label: "DMZ pool route"}
+  - {id: l-dmz-apps, from: traefik-dmz, to: dmz-apps, kind: https, label: "route to app"}
+  - {id: l-cilium-cl, from: cilium, to: bgp-speaker, kind: ethernet, label: "pod and service dataplane"}
+  - {id: l-pg-backup, from: jf-postgres, to: ds-backups, kind: backup, label: "nightly dump (CronJob)"}
+  - {id: l-vmk-api, from: vm-haproxy-1, to: vm-masters, kind: https, label: "API port 6443 and node join"}
+  - {id: l-hap-pair, from: vm-haproxy-1, to: vm-haproxy-2, kind: ethernet, label: "keepalived VIP pair"}
+  - {id: l-rb-byteme, from: byteme-clients, to: rb4011, kind: ethernet, label: "gateway"}
+  - {id: l-rb-iot, from: iot-clients, to: rb4011, kind: ethernet, label: "gateway, internet only"}
+
+paths:
+  - id: p-site
+    label: Visitor to saltstice.com
+    audience: public
+    description: Static portfolio site on GitHub Pages, fronted by Cloudflare (CDN, TLS, DNS). The homelab is not in this path.
+    hops:
+      - {node: visitor, note: "Browser requests saltstice.com"}
+      - {node: cloudflare, via_link: l-vis-cf, note: "HTTPS terminates at Cloudflare edge; cached"}
+      - {node: github-pages, via_link: l-cf-gh, note: "Origin is GitHub Pages (origin not re-verified)"}
+  - id: p-status
+    label: Visitor to status.saltstice.com
+    audience: public
+    description: Public status page. Cloudflare reaches the cluster through an outbound tunnel, so no inbound port is open. Grafana only sees a separate Prometheus that holds five aggregate series.
+    hops:
+      - {node: visitor, note: "Browser requests status.saltstice.com"}
+      - {node: cloudflare, via_link: l-vis-cf, note: "HTTPS, Zero Trust tunnel edge"}
+      - {node: cloudflared, via_link: l-cf-cloudflared, note: "Tunnel (initiated outbound from the cluster)"}
+      - {node: traefik, via_link: l-cloudflared-traefik, note: "HTTPS; Host rule with per-client rate limit"}
+      - {node: grafana-public, via_link: l-traefik-gp, note: "HTTP to read-only Grafana"}
+      - {node: prom-public, via_link: l-gp-pp, note: "PromQL over HTTP"}
+      - {node: prometheus, via_link: l-pp-prom, note: "Federation of five pre-aggregated series every minute"}
+  - id: p-jellyfin-wan
+    label: Remote Jellyfin client
+    audience: public
+    description: A dedicated WAN port is forwarded to the Traefik VIP on its own entrypoint (jellyfin-wan), with a per-source connection cap on the router.
+    hops:
+      - {node: wan-client, note: "App connects to jellyfin.saltstice.com"}
+      - {node: rb4011, via_link: l-wan-rb, note: "TCP port forward + new-connection limit"}
+      - {node: traefik, via_link: l-rb-traefik, note: "Entrypoint jellyfin-wan, TLS terminated"}
+      - {node: jellyfin, via_link: l-traefik-jf, note: "HTTP to Jellyfin pods"}
+      - {node: jf-postgres, via_link: l-jf-pg, note: "PostgreSQL for metadata and users"}
+      - {node: jf-valkey, via_link: l-jf-valkey, note: "Cache"}
+      - {node: ds-media, via_link: l-jf-media, note: "Media files over NFS from TrueNAS"}
+  - id: p-lan-app
+    label: LAN client to an internal app
+    audience: lan
+    description: Split-horizon DNS points every internal name at the Traefik VIP; the VIP is a load-balancer address that every node announces to the router over BGP.
+    hops:
+      - {node: lan-clients, note: "Looks up an internal app name"}
+      - {node: vm-adguard, via_link: l-lan-dns, note: "DNS; router redirects stray DNS to AdGuard; wildcard rewrite to Traefik VIP"}
+      - {node: rb4011, via_link: l-lan-rb, note: "Routes to the Applications VLAN; learned the /32 via BGP"}
+      - {node: traefik, via_link: l-lan-traefik, note: "HTTPS with wildcard certificate"}
+      - {node: authentik, via_link: l-apps-sso, note: "Forward-auth on protected routes"}
+      - {node: internal-apps, via_link: l-traefik-apps, note: "IngressRoute to the pod"}
+  - id: p-pvc
+    label: Pod to persistent volume
+    audience: internal
+    description: Stateful pods claim a truenas-iscsi volume. The CSI driver asks TrueNAS (API) to create a zvol and an iSCSI target, then the node logs in over the storage VLAN.
+    hops:
+      - {node: internal-apps, note: "Pod with a PVC"}
+      - {node: truenas-csi, via_link: l-pvc-csi, note: "Provisioner sees the claim"}
+      - {node: vm-truenas, via_link: l-csi-api, note: "HTTPS API call creates zvol and target"}
+      - {node: ds-iscsi, via_link: l-csi-iscsi, note: "Node initiator logs in over iSCSI"}
+      - {node: pool-tank, note: "zvol lives on the RAIDZ2 pool"}
+  - id: p-gitops
+    label: GitOps deploy
+    audience: internal
+    description: Everything reaches the cluster through Git. CI builds and tags the image, Harbor stores it, Flux pulls the manifest change and applies it.
+    hops:
+      - {node: vm-forge, note: "git push, change merged"}
+      - {node: ci-pipeline, via_link: l-git-ci, note: "Pipeline runs on CI pool nodes"}
+      - {node: vm-harbor, via_link: l-ci-harbor, note: "Image pushed after tag pipeline"}
+      - {node: flux, note: "Flux notices the new commit"}
+      - {node: harbor-proxy, via_link: l-flux-cluster, note: "Manifests applied; nodes pull image from Harbor"}
+  - id: p-backup
+    label: Kubernetes backup
+    audience: internal
+    description: Velero writes scheduled backups to an in-cluster S3 store; a scheduled copy then lands on TrueNAS. Proxmox VM backups go straight to TrueNAS over NFS.
+    hops:
+      - {node: velero, note: "Daily and weekly schedules"}
+      - {node: seaweedfs, via_link: l-velero-sw, note: "S3 API inside the cluster"}
+      - {node: ds-backups, via_link: l-sw-nfs, note: "Scheduled NFS copy to TrueNAS"}
+      - {node: pool-tank, note: "Stored on RAIDZ2; no off-site copy verified"}
+  - id: p-vpn
+    label: VPN admin access
+    audience: admin
+    description: WireGuard UDP is port-forwarded to a VPN VM in the DMZ; the router then permits routed admin access.
+    hops:
+      - {node: admin-client, note: "WireGuard client"}
+      - {node: rb4011, via_link: l-adm-rb, note: "UDP port forward from WAN"}
+      - {node: vm-vpn, via_link: l-rb-vpn, note: "wg-easy endpoint in the DMZ (currently stopped)"}
+      - {node: rb4011, via_link: l-vpn-mgmt, note: "Return into routed networks"}
+  - id: p-observability
+    label: Metrics, logs and alerts
+    audience: internal
+    description: Exporters feed Prometheus, Alloy ships logs to Loki, Alertmanager sends push notifications by severity.
+    hops:
+      - {node: node-exporters, note: "Scraped every interval"}
+      - {node: prometheus, via_link: l-exp-prom, note: "Stores series, evaluates rules"}
+      - {node: alertmanager, via_link: l-prom-am, note: "Receives firing alerts"}
+      - {node: pushover, via_link: l-am-push, note: "critical / warning / info receivers"}
+  - id: p-logs
+    label: Log shipping
+    audience: internal
+    description: Alloy runs on every node and pushes logs to Loki; Grafana queries them.
+    hops:
+      - {node: alloy, note: "DaemonSet collects pod and node logs"}
+      - {node: loki, via_link: l-alloy-loki, note: "Push"}
+      - {node: grafana, via_link: l-graf-loki, note: "LogQL queries"}
+  - id: p-game
+    label: Game ports
+    audience: public
+    description: A group of TCP/UDP game ports is forwarded to the game-server VM in the Infrastructure VLAN, with connection caps on the busier ones.
+    hops:
+      - {node: game-players, note: "Connect to the public address"}
+      - {node: rb4011, via_link: l-game, note: "Port forwards + per-source limits"}
+      - {node: vm-amp, via_link: l-rb-amp, note: "AMP-managed game instances"}
+  - id: p-certs
+    label: Certificate issuance
+    audience: internal
+    description: Wildcard certificate via DNS-01, so no inbound HTTP challenge is needed.
+    hops:
+      - {node: cert-manager, note: "Requests wildcard certificate"}
+      - {node: cloudflare, via_link: l-cm-cf, note: "TXT record created via API"}
+      - {node: letsencrypt, via_link: l-cm-le, note: "ACME validation and issuance"}
+
+kubernetes:
+  distro: RKE2
+  version: "v1.36.3+rke2r1 (all 8 nodes Ready)"
+  nodes: {control_plane: 3, workers: 3, ci_pool_running: 2, total_ready: 8}
+  cni:
+    name: Cilium (RKE2 packaged)
+    mode: "native routing, no overlay"
+    kube_proxy_replacement: true
+    load_balancing: "DSR + Maglev"
+    host_firewall: true
+    hubble: "relay enabled, UI off, metrics for dns/drop/tcp/flow/icmp/http"
+    bgp_note: "BGP is spoken by MetalLB, not Cilium"
+  lb:
+    controller: MetalLB (BGP mode)
+    peer: "RB4011 (private eBGP AS pair), 6 sessions established, one per node"
+    pools: [{name: default-pool, role: "Applications VLAN service addresses, 4 in use"}, {name: dmz-pool, role: "DMZ VLAN service addresses, 1 in use"}]
+    api_endpoint: "Kubernetes API behind a keepalived HAProxy pair"
+  ingress:
+    - {name: traefik, chart: "traefik 41.6.0", entrypoints: [web, websecure, jellyfin-wan, metrics], replicas: "HPA 3-6", external_traffic_policy: Local}
+    - {name: traefik-dmz, entrypoints: [websecure, metrics], mode: "CRD only, scoped namespaces, no ExternalName"}
+    - {name: cloudflared, role: "outbound Cloudflare tunnel connector, routes managed in Cloudflare"}
+  tls: {issuer: "Let's Encrypt via cert-manager", challenge: "DNS-01 on Cloudflare", cert: "wildcard"}
+  dns: {internal: "AdGuard pair behind a virtual IP, wildcard rewrite to Traefik VIP", public: "Cloudflare, records synced from cluster state", router_enforcement: "client DNS redirected to AdGuard; DoH/DoT bypass blocked"}
+  storage:
+    - {class: truenas-iscsi, driver: truenas-csi, protocol: iSCSI, backend: "TrueNAS zvols on tank", targets: 16}
+    - {class: nfs-client, driver: NFS provisioner, protocol: NFS, backend: "TrueNAS datasets on tank"}
+    - {class: static NFS PVs, use: "Jellyfin media library, config and cache"}
+  gitops:
+    tool: Flux
+    sources: ["manifests repo over SSH", "separate secrets repo (SOPS/age encrypted)"]
+    secrets: "SOPS + age; External Secrets also present"
+    images: "Harbor, including Docker Hub proxy project"
+  policy:
+    kyverno: "chart 3.9.1; PolicyReports used as gate"
+    network_policy: "default deny ingress and egress per namespace, explicit allows"
+    other: ["Pod Security labels", "CrowdSec", "Falco", "resource quotas", "VPA + HPA on everything"]
+  autoscaling: "HPA and VPA on workloads; Karpenter ci-pool 0-N CI nodes from a template, plus three idle general pools"
+  observability:
+    - "kube-prometheus-stack (Prometheus, Alertmanager, Grafana)"
+    - "Loki + Alloy (logs)"
+    - "Tempo (traces)"
+    - "Grafana public + Prometheus public (status page, federation)"
+    - "Blackbox, Proxmox, iDRAC exporters"
+    - "Alertmanager receivers: critical, warning, info push notifications"
+  backups:
+    velero: "v1.18.2; location Available; storage = SeaweedFS S3 in cluster"
+    schedules: "daily and weekly for identity, docs and media namespaces; 7-day and 28-day TTL"
+    other: "Proxmox vzdump to TrueNAS NFS; Jellyfin Postgres dump CronJob"
+  namespaces:
+    - {group: Platform and system, count: 17, examples: [kube-system, flux-system, metallb-system, cert-manager, external-secrets, karpenter]}
+    - {group: Ingress and edge, count: 4, examples: [traefik, traefik-dmz, cloudflared, vpn]}
+    - {group: Storage and backup, count: 5, examples: [truenas-csi, nfs-system, storage, velero]}
+    - {group: Observability, count: 5, examples: [monitoring, loki, tempo, grafana-public, prometheus-public]}
+    - {group: Security, count: 4, examples: [kyverno, falco, crowdsec, security]}
+    - {group: CI runners, count: 3, examples: [ci-runner, ci-runner-build, ci-runner-deploy]}
+    - {group: Identity and inventory, count: 2, examples: [authentik, netbox]}
+    - {group: Apps (media, docs, dashboards, notifications, games, community), count: 16, examples: [media, docmost, homarr, headlamp, ntfy, amp, matrix]}
+    - {group: Other, count: 5, examples: []}

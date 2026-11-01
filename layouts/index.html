@@ -9,7 +9,7 @@
       <div class="lead">{{ $first | safeHTML }}</div>
       <p class="cta"><a class="btn btn-primary" href="/projects/">See what I shipped</a><a class="btn btn-ghost" href="/incidents/">Read the postmortems</a></p>
     </div>
-    <figure class="hero-art">{{ partial "schematic.html" . }}</figure>
+    <figure class="hero-art">{{ if site.Data.topology }}{{ partial "topology.html" (dict "mode" "hero") }}{{ else }}{{ partial "schematic.html" . }}{{ end }}</figure>
   </div>
 </section>
 

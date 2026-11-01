@@ -34,7 +34,7 @@
     var url = ep + '/query_range?query=' + encodeURIComponent(q) + '&start=' + (end - WINDOW) + '&end=' + end + '&step=' + STEP;
     var ctl = typeof AbortController === 'function' ? new AbortController() : null;
     var timer = setTimeout(function () { if (ctl) ctl.abort(); }, TIMEOUT);
-    return fetch(url, { credentials: 'omit', signal: ctl ? ctl.signal : undefined, headers: { Accept: 'application/json' } })
+    return fetch(url, ctl ? { signal: ctl.signal } : undefined)
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(parse)
       .then(function (d) { clearTimeout(timer); return d; }, function () { clearTimeout(timer); return null; });
@@ -65,7 +65,7 @@
     var x = function (t) { return t1 === t0 ? W : (t - t0) / (t1 - t0) * W; };
     var y = function (v) { return H - 3 - (v - dm[0]) / (dm[1] - dm[0]) * (H - 6); };
     var d = pathFor(pts, x, y);
-    el('path', { d: d + 'L' + W + ' ' + H + 'L' + x(t0) + ' ' + H + 'Z', 'class': 'area' }, svg);
+    if (pts.length >= 6) el('path', { d: d + 'L' + W + ' ' + H + 'L' + x(t0) + ' ' + H + 'Z', 'class': 'area' }, svg);
     el('path', { d: d, 'class': 'line' }, svg);
     var last = pts[pts.length - 1];
     el('circle', { cx: x(last[0]).toFixed(1), cy: y(last[1]).toFixed(1), r: 2.2, 'class': 'end' }, svg);
@@ -89,8 +89,10 @@
       tx.textContent = hhmm(t);
     });
     var d = pathFor(pts, x, y);
-    el('path', { d: d + 'L' + x(t1).toFixed(1) + ' ' + (H - B) + 'L' + x(t0).toFixed(1) + ' ' + (H - B) + 'Z', 'class': 'area' }, svg);
+    if (pts.length >= 6) el('path', { d: d + 'L' + x(t1).toFixed(1) + ' ' + (H - B) + 'L' + x(t0).toFixed(1) + ' ' + (H - B) + 'Z', 'class': 'area' }, svg);
     el('path', { d: d, 'class': 'line' }, svg);
+    // with only a few samples, mark each real point so a short history reads as short
+    if (pts.length < 12) pts.forEach(function (p) { el('circle', { cx: x(p[0]).toFixed(1), cy: y(p[1]).toFixed(1), r: 3, 'class': 'end' }, svg); });
     var cross = el('line', { y1: T, y2: H - B, 'class': 'cross', visibility: 'hidden' }, svg);
     var dot = el('circle', { r: 3.5, 'class': 'end', visibility: 'hidden' }, svg);
     var tip = host.querySelector('.tip');
