@@ -2,11 +2,11 @@
 (function () {
   var root = document.querySelector('[data-hero]');
   if (!root) return;
-  var NS = 'http://www.w3.org/2000/svg', VW = 1200;
-  var svg = root.querySelector('.hdia'), cv = root.querySelector('.hd-fx'), cap = root.querySelector('.hd-cap-t');
+  var NS = 'http://www.w3.org/2000/svg';
+  var small = window.matchMedia('(max-width: 760px)'), V = small.matches ? 'm' : 'd';
+  var svg = root.querySelector('.hdia-' + V), vb = svg.viewBox.baseVal, VW = vb.width, VH = vb.height, cv = root.querySelector('.hd-fx'), cap = root.querySelector('.hd-cap-t');
   var gB = svg.querySelector('.hd-beams');
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var small = window.matchMedia('(max-width: 700px)');
   function el(n, a, p) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
   var STY = {
     https: { g: [1.3, 3.6], len: 14, v: 190, w: 2.2 }, http: { g: [1.5, 4], len: 12, v: 170, w: 2 }, bgp: { g: [4, 8], len: 0, v: 70, w: 3.4, both: 1 },
@@ -16,7 +16,7 @@
   };
   var DEF = { g: [3, 6], len: 0, v: 120, w: 1.8 };
   var links = [].slice.call(svg.querySelectorAll('.hl')).map(function (p) {
-    return { p: p, t: p.getTotalLength(), s: STY[p.getAttribute('data-kind')] || DEF, next: Math.random() * 3, from: p.getAttribute('data-from'), id: p.id.replace('hd-', '') };
+    return { p: p, t: p.getTotalLength(), s: STY[p.getAttribute('data-kind')] || DEF, next: Math.random() * 3, from: p.getAttribute('data-from'), id: p.getAttribute('data-link') };
   });
   var byId = {}; links.forEach(function (l) { byId[l.id] = l; });
   function rnd(r) { return r[0] + Math.random() * (r[1] - r[0]); }
@@ -31,8 +31,8 @@
     var dt = Math.min((now - last) / 1000, 0.1); last = now;
     if (++n % 50 === 0) col = getComputedStyle(document.documentElement).getPropertyValue('--fg').trim() || col;
     amb += ((tracing ? 0.35 : 1) - amb) * Math.min(dt * 4, 1);
-    var sp = small.matches ? 0.6 : 1, ctx = cv.getContext('2d'), t = now / 1000;
-    ctx.clearRect(0, 0, VW, 700);
+    var sp = V === 'm' ? 0.6 : 1, ctx = cv.getContext('2d'), t = now / 1000;
+    ctx.clearRect(0, 0, VW, VH);
     links.forEach(function (l) {
       if (t >= l.next && parts.length < 120) {
         var rev = l.s.both && Math.random() < 0.5;
@@ -63,7 +63,7 @@
 
   // paths from the data: only hops that exist in the showpiece are drawn
   var paths = [].slice.call(root.querySelectorAll('.hd-paths > li')).map(function (li) {
-    return { label: li.getAttribute('data-label'), hops: [].slice.call(li.querySelectorAll('li')).map(function (h) { return { n: h.getAttribute('data-node'), l: h.getAttribute('data-link') }; }).filter(function (h) { return svg.querySelector('#hdn-' + h.n); }) };
+    return { label: li.getAttribute('data-label'), hops: [].slice.call(li.querySelectorAll('li')).map(function (h) { return { n: h.getAttribute('data-node'), l: h.getAttribute('data-link') }; }).filter(function (h) { return svg.querySelector('#hdn-' + V + '-' + h.n); }) };
   }).filter(function (p) { return p.hops.length > 1; });
   var timers = [], pi = 0;
   function clear() {
@@ -76,7 +76,7 @@
     var prev = null, DUR = 800;
     p.hops.forEach(function (h, i) {
       var go = function () {
-        var nd = svg.querySelector('#hdn-' + h.n);
+        var nd = svg.querySelector('#hdn-' + V + '-' + h.n);
         nd.classList.add('on'); if (!reduce) { nd.classList.remove('flash'); void nd.getBoundingClientRect(); nd.classList.add('flash'); }
         if (cap) cap.textContent = p.label + ': hop ' + (i + 1) + ' of ' + p.hops.length;
         var l = h.l && byId[h.l];
@@ -100,7 +100,7 @@
 
   // live cluster numbers; nothing is shown unless the API answers
   var ep = root.getAttribute('data-endpoint'), stat = parseInt(root.getAttribute('data-k8s-static'), 10) || 0;
-  var ro = svg.querySelector('#hd-ro'), glow = svg.querySelector('#hd-glow');
+  var ro = svg.querySelector('.hd-ro'), glow = svg.querySelector('.hd-glow');
   function q(name) {
     return fetch(ep + '/query?query=' + encodeURIComponent(name)).then(function (r) { return r.ok ? r.json() : null; })
       .then(function (j) { return j && j.status === 'success' && j.data.result.length ? parseFloat(j.data.result[0].value[1]) : null; }, function () { return null; });
