@@ -1,209 +1,123 @@
-{{- /* Architecture view rendered from data/topology.yaml. Pass a dict: mode "full" or "hero".
-       Layers come from params.topology, positions are computed here, so the SVG is complete without JS.
-       Nothing is typed in by hand: every box, link and path step is a row of the data file. */ -}}
-{{- $mode := .mode -}}
-{{- $hero := eq $mode "hero" -}}
+{{- /* Architecture map, rendered from data/topology.yaml. Layers and groups come from params.topology.
+       The structure is plain HTML so it reads without JS; arch.js adds path tracing, hover details and link drawing.
+       Nothing here is typed in by hand: every chip, trunk count and path step is a row of the data file. */ -}}
 {{- $T := site.Data.topology -}}
 {{- $cfg := site.Params.topology -}}
 {{- $sc := newScratch -}}
-{{- $NW := 150 }}{{ $NH := 46 }}{{ $CELL := 160 }}{{ $CELLH := 56 }}{{ $GPAD := 12 }}{{ $GHEAD := 28 }}{{ $LG := 0 }}{{ $INNER := 1200 }}{{ $LHEAD := 26 }}{{ $VW := 1200 }}
-{{- if $hero }}{{ $NW = 128 }}{{ $CELL = 138 }}{{ $INNER = 552 }}{{ $VW = 552 }}{{ end -}}
-
-{{- /* 1. index nodes, assign each to a layer */ -}}
 {{- range $T.nodes }}{{ $sc.SetInMap "N" .id . }}{{ end -}}
+
+{{- /* 1. assign every node (except the host box itself) to a layer */ -}}
 {{- range $T.nodes }}
   {{- $n := . }}
   {{- if ne $n.id $cfg.host }}
-    {{- $show := true }}{{ if $hero }}{{ $show = in $cfg.hero $n.id }}{{ end }}
-    {{- if $show }}
-      {{- $lid := "" }}
-      {{- if eq ($n.parent | default "") $cfg.host }}{{ $lid = "host" }}
-      {{- else }}{{ range $cfg.layers }}{{ if and (not $lid) (ne .id "host") (in .zones $n.zone) }}{{ $lid = .id }}{{ end }}{{ end }}{{ end }}
-      {{- if not $lid }}{{ $lid = "other" }}{{ end }}
-      {{- $sc.SetInMap "L" $n.id $lid }}
-      {{- $sc.Add (printf "m-%s" $lid) (slice $n.id) }}
-    {{- end }}
-  {{- end }}
-{{- end -}}
-{{- $layers := slice -}}
-{{- range $cfg.layers }}{{ $layers = $layers | append . }}{{ end -}}
-{{- if $sc.Get "m-other" }}{{ $layers = $layers | append (dict "id" "other" "label" "Other" "zones" slice "cols" 5) }}{{ end -}}
-
-{{- /* 2. lay out groups inside each layer, then layers top to bottom */ -}}
-{{- $Y := 8 -}}
-{{- $layerRects := slice -}}
-{{- $groupRects := slice -}}
-{{- range $layers }}
-  {{- $L := . }}
-  {{- $mem := $sc.Get (printf "m-%s" $L.id) | default slice }}
-  {{- if $mem }}
-    {{- $defs := slice }}
-    {{- if $hero }}
-      {{- $defs = $defs | append (dict "label" "" "ids" $mem) }}
-    {{- else if $L.groups }}
-      {{- $claimed := slice }}
-      {{- range $L.groups }}{{ $ids := slice }}{{ $g := . }}{{ range $mem }}{{ if in $g.ids . }}{{ $ids = $ids | append . }}{{ $claimed = $claimed | append . }}{{ end }}{{ end }}{{ if $ids }}{{ $defs = $defs | append (dict "label" .label "ids" $ids) }}{{ end }}{{ end }}
-      {{- $rest := slice }}{{ range $mem }}{{ if not (in $claimed .) }}{{ $rest = $rest | append . }}{{ end }}{{ end }}
-      {{- if $rest }}{{ $defs = $defs | append (dict "label" "Other" "ids" $rest) }}{{ end }}
+    {{- $lid := "" }}
+    {{- if eq ($n.parent | default "") $cfg.host }}{{ $lid = "host" }}
     {{- else }}
-      {{- range $T.zones }}{{ $z := . }}{{ $ids := slice }}{{ range $mem }}{{ if eq (index ($sc.Get "N") .).zone $z.id }}{{ $ids = $ids | append . }}{{ end }}{{ end }}{{ if $ids }}{{ $defs = $defs | append (dict "label" (index ($L.labels | default dict) $z.id | default $z.label) "ids" $ids) }}{{ end }}{{ end }}
+      {{- range $cfg.layers }}{{ $l := . }}{{ if and (not $lid) (ne $l.id "host") }}{{ range $l.groups }}{{ if and (not $lid) (in (.ids | default slice) $n.id) }}{{ $lid = $l.id }}{{ end }}{{ end }}{{ end }}{{ end }}
+      {{- if not $lid }}{{ range $cfg.layers }}{{ $l := . }}{{ if and (not $lid) (ne $l.id "host") (in ($l.zones | default slice) $n.zone) }}{{ $lid = $l.id }}{{ end }}{{ end }}{{ end }}
     {{- end }}
-    {{- $K := $L.cols | default 4 }}{{ if $hero }}{{ $K = 4 }}{{ end }}
-    {{- $multi := gt (len $defs) 1 }}
-    {{- $pad := cond $multi $GPAD 0 }}{{ $head := cond $multi $GHEAD 0 }}
-    {{- $isHost := eq $L.id "host" }}
-    {{- $hpad := cond $isHost 16 0 }}{{ $hhead := cond $isHost 56 0 }}
-    {{- if $hero }}{{ $hhead = 0 }}{{ end }}
-    {{- $avail := sub $INNER (mul 2 $hpad) }}
-    {{- $maxc := div (add (sub $avail (mul 2 $pad)) 10) $CELL }}{{ if gt $K $maxc }}{{ $K = $maxc }}{{ end }}
-    {{- /* size every group */ -}}
-    {{- $sized := slice }}
-    {{- range $gi, $d := $defs }}
-      {{- $n := len $d.ids }}
-      {{- $cols := $n }}{{ if gt $cols $K }}{{ $cols = $K }}{{ end }}
-      {{- $rows := div (add $n (sub $cols 1)) $cols }}
-      {{- $w := add (sub (mul $cols $CELL) 10) (mul 2 $pad) }}
-      {{- $h := add (add $head (sub (mul $rows $CELLH) 10)) (cond $multi (mul 2 $pad) 0) }}
-      {{- $sized = $sized | append (dict "label" $d.label "ids" $d.ids "cols" $cols "w" $w "h" $h) }}
-    {{- end }}
-    {{- /* shelf-pack groups into rows */ -}}
-    {{- $cx := 0 }}{{ $ry := 0 }}{{ $rh := 0 }}{{ $placed := slice }}
-    {{- range $sized }}
-      {{- if and (gt $cx 0) (gt (add $cx .w) $avail) }}{{ $ry = add $ry (add $rh 14) }}{{ $cx = 0 }}{{ $rh = 0 }}{{ end }}
-      {{- $placed = $placed | append (dict "g" . "x" $cx "y" $ry) }}
-      {{- $cx = add $cx (add .w 14) }}{{ if gt .h $rh }}{{ $rh = .h }}{{ end }}
-    {{- end }}
-    {{- $inner := add $ry $rh }}
-    {{- $lh := add (add $inner $hhead) (add (mul 2 $hpad) $LHEAD) }}
-    {{- $lh = add $lh (cond $isHost 0 0) }}
-    {{- $layerRects = $layerRects | append (dict "id" $L.id "label" $L.label "y" $Y "h" $lh "host" $isHost) }}
-    {{- range $placed }}
-      {{- $g := .g }}{{ $gx := add (add $LG $hpad) .x }}{{ $gy := add (add (add $Y $LHEAD) $hhead) (add $hpad .y) }}
-      {{- if $multi }}{{ $groupRects = $groupRects | append (dict "label" $g.label "x" $gx "y" $gy "w" $g.w "h" $g.h "layer" $L.id) }}{{ end }}
-      {{- range $i, $id := $g.ids }}
-        {{- $nx := add $gx (add $pad (mul (mod $i $g.cols) $CELL)) }}
-        {{- $ny := add $gy (add (add $head $pad) (mul (div $i $g.cols) $CELLH)) }}
-        {{- $sc.SetInMap "pos" $id (dict "x" $nx "y" $ny "w" $NW "h" $NH "layer" $L.id) }}
-      {{- end }}
-    {{- end }}
-    {{- if $isHost }}{{ $sc.SetInMap "pos" $cfg.host (dict "x" (add $LG 0) "y" (add $Y $LHEAD) "w" $INNER "h" (sub $lh $LHEAD) "layer" "host") }}{{ end }}
-    {{- $Y = add (add $Y $lh) 22 }}
+    {{- if not $lid }}{{ $lid = "cluster" }}{{ end }}
+    {{- $sc.SetInMap "L" $n.id $lid }}
+    {{- $sc.Add (printf "m-%s" $lid) (slice $n.id) }}
   {{- end }}
 {{- end -}}
-{{- $H := $Y -}}
-{{- $hostNode := index ($sc.Get "N") $cfg.host -}}
-{{- /* kinds present, for the legend */ -}}
+{{- $sc.SetInMap "L" $cfg.host "host" -}}
+{{- range $i, $l := $cfg.layers }}{{ $sc.SetInMap "I" $l.id $i }}{{ end -}}
+
+{{- /* 2. link kinds that cross each boundary between layers, for the trunk strips */ -}}
+{{- $nl := len $cfg.layers -}}
+{{- range $T.links }}
+  {{- $la := index ($sc.Get "L") .from }}{{ $lb := index ($sc.Get "L") .to }}
+  {{- if and $la $lb }}
+    {{- $ia := index ($sc.Get "I") $la }}{{ $ib := index ($sc.Get "I") $lb }}
+    {{- $lo := cond (lt $ia $ib) $ia $ib }}{{ $hi := cond (lt $ia $ib) $ib $ia }}{{ $lk := . }}
+    {{- if lt $lo $hi }}{{ range seq $lo (sub $hi 1) }}{{ $sc.Add (printf "cr-%d" .) (slice $lk.kind) }}{{ end }}{{ end }}
+  {{- end }}
+{{- end -}}
 {{- $kinds := slice -}}
 {{- range $T.links }}{{ if not (in $kinds .kind) }}{{ $kinds = $kinds | append .kind }}{{ end }}{{ end -}}
+{{- $hostNode := index ($sc.Get "N") $cfg.host -}}
 
-<div class="arch arch-{{ $mode }}"{{ if not $hero }} data-arch{{ end }}>
-{{- if not $hero }}
-  <div class="arch-bar">
-    <div class="arch-layers" role="group" aria-label="Layers">
-      <span class="lab">Layers</span>
-      {{- range $layerRects }}<label class="tog"><input type="checkbox" checked data-layer-toggle="{{ .id }}"><span>{{ .label }}</span></label>{{ end }}
+<div class="map" data-arch>
+  <div class="map-top">
+    <div class="map-paths" role="group" aria-label="Trace a path through the lab">
+      <span class="lab">Trace a path</span>
+      {{- range $T.paths }}<button type="button" class="seg path-btn" data-path="{{ .id }}" aria-pressed="false">{{ .label }}</button>{{ end }}
     </div>
-    <ul class="arch-legend" aria-label="Link kinds">
-      {{- range sort $kinds }}<li><svg viewBox="0 0 28 8" aria-hidden="true" focusable="false"><path class="lk lk-{{ . }}" d="M1 4H27"/></svg>{{ . }}</li>{{ end }}
-      <li class="legend-unv"><svg viewBox="0 0 28 12" aria-hidden="true" focusable="false"><rect class="unv-sample" x="2" y="1" width="24" height="10" rx="3"/></svg>unverified</li>
-    </ul>
+    <div class="map-tools">
+      <label class="tog"><input type="checkbox" data-show-links><span>Show all links</span></label>
+      <ul class="map-legend" aria-label="Link kinds">
+        {{- range sort $kinds }}<li><i class="tk tk-{{ . }}" aria-hidden="true"></i>{{ . }}</li>{{ end }}
+        <li><i class="tk tk-unv" aria-hidden="true"></i>unverified</li>
+      </ul>
+    </div>
   </div>
-{{- end }}
-<div class="arch-canvas">
-<svg class="arch-svg" id="{{ if $hero }}arch-hero{{ else }}arch{{ end }}" viewBox="0 0 {{ $VW }} {{ $H }}" role="img" aria-label="Architecture of the lab, drawn from the topology data{{ if not $hero }}: layers from the internet down to storage, every VM, and the links between them{{ end }}" focusable="false">
-  {{- range $layerRects }}
-  <g class="layer" data-layer="{{ .id }}"><rect class="band{{ if .host }} band-host{{ end }}" x="0" y="{{ .y }}" width="{{ $INNER }}" height="{{ .h }}" rx="{{ cond .host 10 0 }}"/></g>
-  {{- end }}
-  {{- range $groupRects }}
-  <g class="group" data-layer="{{ .layer }}"><rect x="{{ .x }}" y="{{ .y }}" width="{{ .w }}" height="{{ .h }}" rx="8"/><text x="{{ add .x 12 }}" y="{{ add .y 18 }}">{{ .label }}</text></g>
-  {{- end }}
-  <g class="layer-labels">
-  {{- range $layerRects }}<g class="layer" data-layer="{{ .id }}"><text class="lbl-layer" x="{{ cond .host 16 4 }}" y="{{ add .y 17 }}">{{ upper .label }}</text>{{ if and .host (not $hero) }}<text class="lbl-host" x="16" y="{{ add .y 42 }}">{{ $hostNode.label }}</text><text class="lbl-spec" x="16" y="{{ add .y 60 }}">{{ delimit $hostNode.specs "  /  " }}</text>{{ end }}</g>{{ end }}
-  </g>
-  <g class="links">
-  {{- range $T.links }}
-    {{- $a := index ($sc.Get "pos") .from }}{{ $b := index ($sc.Get "pos") .to }}
-    {{- $fn := index ($sc.Get "N") .from }}{{ $tn := index ($sc.Get "N") .to }}
-    {{- $la := index ($sc.Get "pos") .from }}{{ $lb := index ($sc.Get "pos") .to }}
-    {{- $skip := or (and (eq .from $cfg.host) (eq ($tn.parent | default "") $cfg.host)) (and (eq .to $cfg.host) (eq ($fn.parent | default "") $cfg.host)) }}
-    {{- $far := false }}{{ if and $hero $a $b }}{{ $ia := 0 }}{{ $ib := 0 }}{{ range $i, $r := $layerRects }}{{ if eq $r.id $a.layer }}{{ $ia = $i }}{{ end }}{{ if eq $r.id $b.layer }}{{ $ib = $i }}{{ end }}{{ end }}{{ if gt (sub $ia $ib) 1 }}{{ $far = true }}{{ end }}{{ if gt (sub $ib $ia) 1 }}{{ $far = true }}{{ end }}{{ end }}
-    {{- if and $a $b (not $skip) (not $far) }}
-      {{- $ax := add $a.x (div $a.w 2) }}{{ $bx := add $b.x (div $b.w 2) }}
-      {{- $ay := add $a.y (div $a.h 2) }}{{ $by := add $b.y (div $b.h 2) }}
-      {{- $dx := sub $bx $ax }}{{ $dy := sub $by $ay }}
-      {{- $adx := cond (lt $dx 0) (sub 0 $dx) $dx }}{{ $ady := cond (lt $dy 0) (sub 0 $dy) $dy }}
-      {{- $d := "" }}
-      {{- if ge $ady 30 }}
-        {{- $sy := cond (gt $dy 0) (add $a.y $a.h) $a.y }}{{ $ey := cond (gt $dy 0) $b.y (add $b.y $b.h) }}
-        {{- $k := div (cond (lt (sub $ey $sy) 0) (sub $sy $ey) (sub $ey $sy)) 2 }}
-        {{- $k1 := cond (gt $dy 0) $k (sub 0 $k) }}
-        {{- $d = printf "M%d %dC%d %d %d %d %d %d" $ax $sy $ax (add $sy $k1) $bx (sub $ey $k1) $bx $ey }}
-      {{- else }}
-        {{- $sx := cond (gt $dx 0) (add $a.x $a.w) $a.x }}{{ $ex := cond (gt $dx 0) $b.x (add $b.x $b.w) }}
-        {{- $k := div (cond (lt (sub $ex $sx) 0) (sub $sx $ex) (sub $ex $sx)) 2 }}{{ if lt $k 24 }}{{ $k = 24 }}{{ end }}
-        {{- $k1 := cond (gt $dx 0) $k (sub 0 $k) }}
-        {{- $d = printf "M%d %dC%d %d %d %d %d %d" $sx $ay (add $sx $k1) $ay (sub $ex $k1) $by $ex $by }}
+
+  <div class="map-main">
+    <div class="map-canvas">
+      <svg class="map-links" aria-hidden="true" focusable="false"><g class="all"></g><g class="route"></g><g class="packets"></g></svg>
+      {{- range $li, $L := $cfg.layers }}
+      {{- $mem := $sc.Get (printf "m-%s" $L.id) | default slice }}
+      {{- if $mem }}
+      {{- $isHost := eq $L.id "host" }}
+      <section class="layer{{ if $isHost }} layer-host{{ end }}" data-layer="{{ $L.id }}" aria-label="{{ $L.label }}">
+        <h3 class="layer-name"><span>{{ $L.label }}</span></h3>
+        <div class="layer-body">
+          {{- if $isHost }}<p class="host-line"><b>{{ $hostNode.label }}</b>{{ with $hostNode.specs }}<span>{{ delimit . ", " }}</span>{{ end }}</p>{{ end }}
+          <div class="groups">
+          {{- $claimed := slice }}
+          {{- range $L.groups }}{{ $g := . }}{{ $ids := slice }}
+            {{- if $g.ids }}{{ range $mem }}{{ if in $g.ids . }}{{ $ids = $ids | append . }}{{ end }}{{ end }}
+            {{- else if $g.zone }}{{ range $mem }}{{ if and (eq (index ($sc.Get "N") .).zone $g.zone) (not (in $claimed .)) }}{{ $ids = $ids | append . }}{{ end }}{{ end }}{{ end }}
+            {{- $claimed = $claimed | append $ids }}
+            {{- if $ids }}
+            <div class="grp view-{{ $g.view | default "chips" }} w{{ $g.w | default 100 }}{{ if $g.tall }} tall{{ end }}">
+              <h4>{{ $g.label }}</h4>
+              <ul>{{ range $ids }}{{ partial "map-chip.html" (index ($sc.Get "N") .) }}{{ end }}</ul>
+            </div>
+            {{- end }}
+          {{- end }}
+          {{- $rest := slice }}{{ range $mem }}{{ if not (in $claimed .) }}{{ $rest = $rest | append . }}{{ end }}{{ end }}
+          {{- if $rest }}<div class="grp view-chips w100"><h4>Other</h4><ul>{{ range $rest }}{{ partial "map-chip.html" (index ($sc.Get "N") .) }}{{ end }}</ul></div>{{ end }}
+          </div>
+        </div>
+      </section>
+      {{- if lt (add $li 1) $nl }}
+      {{- $cr := $sc.Get (printf "cr-%d" $li) | default slice }}
+      <div class="trunk" aria-label="Links crossing this boundary">
+        {{- $seen := slice }}{{ range $cr }}{{ $k := . }}{{ if not (in $seen $k) }}{{ $seen = $seen | append $k }}{{ $c := 0 }}{{ range $cr }}{{ if eq . $k }}{{ $c = add $c 1 }}{{ end }}{{ end }}<span class="tkc"><i class="tk tk-{{ $k }}" aria-hidden="true"></i>{{ $k }} {{ $c }}</span>{{ end }}{{ end }}
+      </div>
       {{- end }}
-      <path class="lk lk-{{ .kind }}" id="lk-{{ .id }}" d="{{ $d }}" data-from="{{ .from }}" data-to="{{ .to }}"><title>{{ .label }} ({{ .kind }})</title></path>
-    {{- end }}
-  {{- end }}
-  </g>
-  <g class="packets"></g>
-  <g class="nodes">
-  {{- range $T.nodes }}
-    {{- $p := index ($sc.Get "pos") .id }}
-    {{- if and $p (ne .id $cfg.host) }}
-    {{- $off := eq (.status | default "") "stopped" }}
-    <g class="nd k-{{ .kind }}{{ if .unverified }} unv{{ end }}{{ if $off }} off{{ end }}" id="n-{{ .id }}" data-id="{{ .id }}" data-layer="{{ $p.layer }}" tabindex="0">
-      <rect x="{{ $p.x }}" y="{{ $p.y }}" width="{{ $p.w }}" height="{{ $p.h }}" rx="6"/>
-      <text class="nl" x="{{ add $p.x 10 }}" y="{{ add $p.y 19 }}">{{ .label | truncate (cond $hero 16 20) }}</text>
-      <text class="ns" x="{{ add $p.x 10 }}" y="{{ add $p.y 35 }}">{{ if $off }}stopped{{ else if .unverified }}unverified{{ else if and (isset . "count") (eq .count 0) }}idle{{ else if and (isset . "count") (gt .count 1) }}x{{ .count }} {{ .kind | truncate 10 }}{{ else }}{{ .kind | truncate 16 }}{{ end }}</text>
-      <title>{{ .label }}: {{ .role }}</title>
-    </g>
-    {{- end }}
-  {{- end }}
-  </g>
-</svg>
-</div>
-{{- if not $hero }}
-  <aside class="arch-info" aria-live="polite"><p class="arch-hint">Hover or focus a box for details. Pick a path below to trace it.</p></aside>
+      {{- end }}
+      {{- end }}
+    </div>
+
+    <aside class="map-side" aria-label="Path steps and details">
+      <div class="steps-pane">
+        <p class="side-hint">Pick a path above. The boxes it touches light up in order and the steps appear here.</p>
+        {{- range $T.paths }}
+        <section class="pth" id="path-{{ .id }}" data-path="{{ .id }}" aria-label="{{ .label }}">
+          <header><h3>{{ .label }}</h3><span class="chip chip-{{ cond (eq .audience "public") "incident" (cond (eq .audience "admin") "runbook" "build") }}">{{ .audience }}</span></header>
+          <p class="sum">{{ .description }}</p>
+          <ol class="hops">
+          {{- range $i, $h := .hops }}{{ $nn := index ($sc.Get "N") $h.node }}
+            <li data-node="{{ $h.node }}"{{ with $h.via_link }} data-link="{{ . }}"{{ end }}><span class="hn">{{ add $i 1 }}</span><div><b>{{ $nn.label }}</b><span>{{ $h.note }}</span></div></li>
+          {{- end }}
+          </ol>
+          <p class="pth-ctl"><button type="button" class="btn replay" data-replay hidden>Replay</button></p>
+        </section>
+        {{- end }}
+      </div>
+      <div class="detail" aria-live="polite"><p class="side-hint">Hover or focus a box for its role, specs and links.</p></div>
+    </aside>
+  </div>
+
   <ul class="node-data" hidden>
   {{- range $T.nodes }}
-    <li data-id="{{ .id }}"><b>{{ .label }}</b><span class="kind">{{ .kind }}{{ with .status }}, {{ . }}{{ end }}{{ if .unverified }}, unverified{{ end }}</span><span class="role">{{ .role }}</span>{{ with .specs }}<span class="specs">{{ delimit . ", " }}</span>{{ end }}</li>
+    <li data-id="{{ .id }}"><b>{{ .label }}</b><span class="kind">{{ .kind }}{{ with .status }}, {{ . }}{{ end }}{{ if .unverified }}, unverified{{ end }}</span><span class="role">{{ .role }}</span>{{ with .specs }}<span class="specs">{{ delimit . ", " }}</span>{{ end }}{{ with .tags }}<span class="tags">{{ delimit . ", " }}</span>{{ end }}</li>
   {{- end }}
   </ul>
-
-  {{- /* stacked view for phones and tablets, and the no-JS reading order */ -}}
-  <div class="arch-stack">
-  {{- range $layerRects }}{{ $lid := .id }}
-    <section class="stack-layer"><h3>{{ .label }}</h3>
-      <ul class="chips">
-      {{- range $T.nodes }}{{ $p := index ($sc.Get "pos") .id }}{{ if and $p (eq $p.layer $lid) (ne .id $cfg.host) }}<li class="chip-node{{ if eq (.status | default "") "stopped" }} off{{ end }}{{ if .unverified }} unv{{ end }}"><b>{{ .label }}</b><span>{{ .role }}</span></li>{{ end }}{{ end }}
-      </ul>
-    </section>
-  {{- end }}
-  </div>
-
-  <div class="trace" id="trace">
-    <div class="sec-head"><h2 id="h-trace"><span class="idx">TRACE</span>Follow a path</h2></div>
-    <div class="trace-pick" role="group" aria-labelledby="h-trace">
-      {{- range $T.paths }}<button type="button" class="pill path-btn" data-path="{{ .id }}" aria-pressed="false">{{ .label }}</button>{{ end }}
-    </div>
-    <div class="trace-body">
-    {{- range $T.paths }}
-      {{- $pid := .id }}
-      <section class="path" id="path-{{ .id }}" data-path="{{ .id }}" aria-label="{{ .label }}">
-        <header><h3>{{ .label }}</h3><span class="chip chip-{{ cond (eq .audience "public") "incident" (cond (eq .audience "admin") "runbook" "build") }}">{{ .audience }}</span></header>
-        <p class="sum">{{ .description }}</p>
-        <ol class="hops">
-        {{- range $i, $h := .hops }}{{ $nn := index ($sc.Get "N") $h.node }}
-          <li data-node="{{ $h.node }}"{{ with $h.via_link }} data-link="{{ . }}"{{ end }}><span class="n">{{ add $i 1 }}</span><div><b>{{ $nn.label }}</b><span>{{ $h.note }}</span></div></li>
-        {{- end }}
-        </ol>
-        <p class="path-ctl"><button type="button" class="btn replay" data-replay hidden>Replay</button></p>
-      </section>
-    {{- end }}
-    </div>
-  </div>
-{{- end }}
+  <ul class="link-data" hidden>
+  {{- range $T.links }}<li data-id="{{ .id }}" data-from="{{ .from }}" data-to="{{ .to }}" data-kind="{{ .kind }}">{{ .label }}</li>{{ end }}
+  </ul>
 </div>

@@ -58,26 +58,45 @@ params:
   topology:
     host: r740xd
     layers:
-      - {id: internet, label: Internet and remote site, zones: [z-internet, z-remote]}
-      - {id: edge, label: Edge and network core, zones: [z-edge, z-client], cols: 5}
-      - {id: host, label: Proxmox host, zones: [z-mgmt, z-infra, z-storage, z-dmz, z-cluster], cols: 5, labels: {z-cluster: Kubernetes nodes}}
-      - id: cluster
-        label: Kubernetes services
-        zones: [z-cluster, z-infra]
-        cols: 3
+      - id: internet
+        label: Internet
+        zones: [z-internet, z-remote]
         groups:
-          - {label: Traffic and DNS, ids: [bgp-speaker, cilium, traefik, traefik-dmz, cloudflared, cert-manager, external-dns]}
-          - {label: GitOps and policy, ids: [flux, kyverno, netpol, karpenter, harbor-proxy, ci-pipeline]}
-          - {label: Apps, ids: [jellyfin, jf-postgres, jf-valkey, internal-apps, authentik, dmz-apps]}
-          - {label: Observability, ids: [prometheus, alertmanager, grafana, loki, alloy, node-exporters, tempo, prom-public]}
-          - {label: Storage and backup, ids: [truenas-csi, nfs-csi, velero, seaweedfs]}
-      - {id: storage, label: TrueNAS storage, zones: [z-storage], cols: 5}
-    hero: [visitor, cloudflare, rb4011, crs317, crs328, vm-masters, vm-worker-1, vm-worker-2, vm-worker-3, pool-ci, vm-truenas, bgp-speaker, cilium, traefik, flux, pool-tank]
+          - {label: Internet, zone: z-internet, w: 80}
+          - {label: Remote site, zone: z-remote, w: 20}
+      - id: edge
+        label: Edge
+        zones: [z-edge, z-client]
+        groups:
+          - {label: Network core, zone: z-edge, w: 60}
+          - {label: Client VLANs, zone: z-client, w: 40}
+      - id: host
+        label: Proxmox host
+        groups:
+          - {label: Infrastructure VLAN, zone: z-infra, view: cols, w: 50, tall: true}
+          - {label: Kubernetes nodes, zone: z-cluster, view: list, w: 30, tall: true}
+          - {label: Storage VLAN, zone: z-storage, w: 20}
+          - {label: DMZ VLAN, zone: z-dmz, w: 33}
+          - {label: Management VLAN, zone: z-mgmt, w: 33}
+      - id: cluster
+        label: Kubernetes
+        zones: [z-cluster, z-infra]
+        groups:
+          - {label: Traffic and DNS, view: list, w: 20, ids: [bgp-speaker, cilium, traefik, traefik-dmz, cloudflared, cert-manager, external-dns]}
+          - {label: GitOps and policy, view: list, w: 20, ids: [flux, kyverno, netpol, karpenter, harbor-proxy, ci-pipeline]}
+          - {label: Apps, view: list, w: 20, ids: [jellyfin, jf-postgres, jf-valkey, internal-apps, authentik, dmz-apps]}
+          - {label: Observability, view: list, w: 20, ids: [prometheus, prom-public, alertmanager, grafana, loki, alloy, node-exporters, tempo]}
+          - {label: Storage and backup, view: list, w: 20, ids: [truenas-csi, nfs-csi, velero, seaweedfs]}
+      - id: storage
+        label: Storage
+        zones: [z-storage]
+        groups:
+          - {label: TrueNAS pool, zone: z-storage, w: 100}
   telemetry:
     endpoint: https://status.saltstice.com/api/v1
     series:
-      - {q: "public:cpu_utilization:ratio", label: CPU, note: cluster utilization, fmt: pct}
-      - {q: "public:memory_utilization:ratio", label: Memory, note: cluster utilization, fmt: pct}
+      - {q: "public:cpu_utilization:ratio", label: CPU, note: cluster utilization, fmt: pct, role: main}
+      - {q: "public:memory_utilization:ratio", label: Memory, note: cluster utilization, fmt: pct, role: main}
       - {q: "public:nodes_ready:count", label: Nodes ready, note: Kubernetes nodes, fmt: count}
       - {q: "public:pods_running:count", label: Pods running, note: across the cluster, fmt: count}
       - {q: "public:targets_healthy:ratio", label: Targets healthy, note: scrape targets up, fmt: pct}

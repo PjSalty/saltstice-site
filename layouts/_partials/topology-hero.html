@@ -1,0 +1,70 @@
+{{- /* Home illustration. Labels, counts and VLAN dots come from data/topology.yaml; the geometry is drawn by hand.
+       One packet runs the "Live telemetry on this site" path: visitor, Cloudflare, tunnel, ingress, public Prometheus. */ -}}
+{{- $T := site.Data.topology -}}
+{{- $cfg := site.Params.topology -}}
+{{- $by := dict -}}
+{{- range $T.nodes }}{{ $by = merge $by (dict .id .) }}{{ end -}}
+{{- $host := index $by $cfg.host -}}
+{{- $cf := index $by "cloudflare" -}}{{ $rb := index $by "rb4011" -}}{{ $vis := index $by "visitor" -}}
+{{- $cfd := index $by "cloudflared" -}}{{ $tr := index $by "traefik" -}}{{ $pp := index $by "prom-public" -}}
+{{- $ml := index $by "bgp-speaker" -}}{{ $ci := index $by "cilium" -}}{{ $tn := index $by "vm-truenas" -}}{{ $pool := index $by "pool-ci" -}}
+{{- $masters := index $by "vm-masters" -}}
+{{- $workers := 0 -}}{{ range $T.nodes }}{{ if and (eq .kind "k8s-worker") (eq (.parent | default "") $cfg.host) }}{{ $workers = add $workers 1 }}{{ end }}{{ end -}}
+{{- $ver := index (split $T.kubernetes.version " ") 0 -}}
+<svg class="hx" viewBox="0 0 560 520" role="img" aria-labelledby="hx-t hx-d" focusable="false">
+  <title id="hx-t">The lab, drawn from the topology data</title>
+  <desc id="hx-d">A visitor reaches Cloudflare. Cloudflare reaches the cluster through an outbound tunnel into the ingress and the public Prometheus. The cluster runs on one Dell R740xd with four VLAN bands, a BGP link to the MikroTik router, and a TrueNAS storage VM.</desc>
+
+  <path class="hx-wire" d="M109 154V190"/>
+  <path class="hx-bgp" d="M452 340V238H109V154"/>
+  <path class="hx-path" id="hx-route" d="M46 40H200V351H236H301V397V443"/>
+
+  <g class="hx-edge">
+    <circle class="hx-vis" cx="30" cy="40" r="10"/>
+    <text class="hx-t" x="30" y="70" text-anchor="middle">Visitor</text>
+    <rect class="hx-box hx-cool" x="110" y="18" width="180" height="44" rx="8"/>
+    <text class="hx-l" x="124" y="37">{{ $cf.label }}</text>
+    <text class="hx-s" x="124" y="53">{{ delimit (first 3 $cf.tags) " / " }}</text>
+    <rect class="hx-box hx-cool" x="24" y="110" width="170" height="44" rx="8"/>
+    <text class="hx-l" x="38" y="129">{{ $rb.label }}</text>
+    <text class="hx-s" x="38" y="145">{{ delimit (first 2 $rb.tags) " / " }}</text>
+  </g>
+
+  <rect class="hx-host" x="8" y="190" width="544" height="322" rx="14"/>
+  <text class="hx-h" x="24" y="216">{{ $host.label }}</text>
+  <text class="hx-s" x="24" y="234">{{ index $host.specs 0 }}, {{ index $host.specs 1 }}</text>
+
+  {{- /* VLAN bands: one dot per entry in the data, stopped VMs dim */ -}}
+  {{- $bands := slice (dict "z" "z-infra" "label" "Infrastructure VLAN" "y" 250 "h" 64) (dict "z" "z-storage" "label" "Storage VLAN" "y" 322 "h" 64) (dict "z" "z-dmz" "label" "DMZ VLAN" "y" 394 "h" 44) (dict "z" "z-mgmt" "label" "Management VLAN" "y" 446 "h" 44) }}
+  {{- range $bands }}{{ $b := . }}
+  <g class="hx-band">
+    <rect x="24" y="{{ .y }}" width="170" height="{{ .h }}" rx="8"/>
+    <text class="hx-s" x="36" y="{{ add .y 18 }}">{{ .label }}</text>
+    {{- $i := 0 }}
+    {{- range $T.nodes }}{{ if and (eq (.parent | default "") $cfg.host) (eq .zone $b.z) (ne .id "vm-truenas") }}
+    <circle class="hx-dot{{ if eq (.status | default "") "stopped" }} off{{ end }}" cx="{{ add 40 (mul (mod $i 11) 14) }}" cy="{{ add $b.y (add 34 (mul (div $i 11) 14)) }}" r="4.5"><title>{{ .label }}</title></circle>
+    {{- $i = add $i 1 }}{{ end }}{{ end }}
+    {{- if eq .z "z-storage" }}<text class="hx-l" x="36" y="{{ add .y 44 }}">{{ $tn.label }}</text><text class="hx-s hx-ok" x="112" y="{{ add .y 44 }}">NFS, iSCSI, S3</text>{{ end }}
+  </g>
+  {{- end }}
+
+  <rect class="hx-cluster" x="220" y="250" width="316" height="246" rx="10"/>
+  <text class="hx-h2" x="236" y="274">Kubernetes</text>
+  <text class="hx-s" x="340" y="274">{{ $ver }}</text>
+  {{- /* nodes: discs from the data, CI pool dashed */ -}}
+  {{- range seq 0 (sub (int $masters.count) 1) }}<circle class="hx-node m" cx="{{ add 250 (mul . 28) }}" cy="296" r="11"/>{{ end }}
+  {{- range seq 0 (sub $workers 1) }}<circle class="hx-node w" cx="{{ add 366 (mul . 28) }}" cy="296" r="11"/>{{ end }}
+  {{- range seq 0 (sub (int $pool.count) 1) }}<circle class="hx-node c" cx="{{ add 480 (mul . 28) }}" cy="296" r="11"/>{{ end }}
+  <text class="hx-s" x="250" y="326">control plane</text>
+  <text class="hx-s" x="366" y="326">workers</text>
+  <text class="hx-s" x="480" y="326">CI pool</text>
+
+  <g class="hx-chip"><rect x="236" y="336" width="156" height="30" rx="6"/><text class="hx-l" x="248" y="355">{{ $cfd.label }}</text></g>
+  <g class="hx-chip"><rect x="236" y="382" width="156" height="30" rx="6"/><text class="hx-l" x="248" y="401">{{ $tr.label | replaceRE ` \(main\)` "" }}</text></g>
+  <g class="hx-chip"><rect x="236" y="428" width="156" height="30" rx="6"/><text class="hx-l" x="248" y="447">{{ $pp.label | replaceRE ` \(public\)` " (public)" }}</text></g>
+  <g class="hx-chip hx-hot"><rect x="404" y="340" width="120" height="30" rx="6"/><text class="hx-l" x="416" y="359">{{ $ml.label | replaceRE ` \(BGP speaker\)` "" }}</text></g>
+  <g class="hx-chip"><rect x="404" y="386" width="120" height="30" rx="6"/><text class="hx-l" x="416" y="405">{{ $ci.label | replaceRE ` CNI` "" }}</text></g>
+  <text class="hx-s hx-acc" x="404" y="440">BGP to the router</text>
+
+  <circle class="hx-pkt" r="5"><animateMotion dur="5s" repeatCount="indefinite" path="M46 40H200V351H236H301V397V443"/></circle>
+</svg>

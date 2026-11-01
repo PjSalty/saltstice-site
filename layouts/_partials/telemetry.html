@@ -3,17 +3,36 @@
 {{- $v := . -}}
 {{- $t := site.Params.telemetry -}}
 <section class="tele tele-{{ $v }} is-loading" data-telemetry data-endpoint="{{ $t.endpoint }}" aria-label="Live lab telemetry">
-  <p class="tele-head"><span class="pulse" aria-hidden="true"></span><span class="tele-state" role="status" aria-live="polite">Loading live numbers</span><span class="tele-note">last 2 hours, refreshed every minute</span></p>
+  <p class="tele-head"><span class="pulse" aria-hidden="true"></span><span class="tele-state" role="status" aria-live="polite">Loading live numbers</span><span class="tele-note" data-note>last 2 hours, refreshed every minute</span></p>
+  {{- if eq $v "full" }}
+  <div class="tele-grid">
+    <figure class="chart chart-main" data-chart data-fmt="pct">
+      <figcaption><span class="k">Cluster load</span>
+        <ul class="legend">
+        {{- range $i, $s := where $t.series "role" "main" }}<li class="s{{ add $i 1 }}" data-q="{{ $s.q }}"><i aria-hidden="true"></i>{{ $s.label }}<b class="v">&nbsp;</b></li>{{ end }}
+        </ul>
+      </figcaption>
+      <svg class="spark" viewBox="0 0 640 190" aria-hidden="true" focusable="false"></svg>
+    </figure>
+    {{- range $t.series }}{{ if ne (.role | default "") "main" }}
+    <figure class="chart tile" data-chart data-q="{{ .q }}" data-fmt="{{ .fmt }}">
+      <figcaption><span class="k">{{ .label }}</span><span class="note">{{ .note }}</span></figcaption>
+      <b class="v">&nbsp;</b>
+      <svg class="spark" viewBox="0 0 200 54" aria-hidden="true" focusable="false"></svg>
+    </figure>
+    {{- end }}{{ end }}
+  </div>
+  {{- else }}
   <ul class="tele-grid">
   {{- range $t.series }}
-    <li class="tm" data-q="{{ .q }}" data-fmt="{{ .fmt }}">
+    <li class="chart tm" data-chart data-q="{{ .q }}" data-fmt="{{ .fmt }}">
       <span class="k">{{ .label }}</span>
-      <span class="v" aria-live="off">&nbsp;</span>
-      {{- if eq $v "full" }}<span class="note">{{ .note }}</span>{{ end }}
-      <svg class="spark" viewBox="0 0 {{ if eq $v "full" }}600 150{{ else }}120 34{{ end }}" preserveAspectRatio="{{ if eq $v "full" }}xMidYMid meet{{ else }}none{{ end }}" aria-hidden="true" focusable="false"></svg>
+      <span class="v">&nbsp;</span>
+      <svg class="spark" viewBox="0 0 120 34" preserveAspectRatio="none" aria-hidden="true" focusable="false"></svg>
     </li>
   {{- end }}
   </ul>
+  {{- end }}
   <p class="tele-down" hidden>Telemetry is unavailable right now. The feed did not answer, so nothing is shown instead of a guess.</p>
   {{- /* No-JS fallback: values at build time, only when the API answers with JSON. Fails soft. */}}
   {{- $rows := slice }}
