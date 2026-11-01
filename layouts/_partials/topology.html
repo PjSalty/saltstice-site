@@ -53,7 +53,7 @@
     {{- $pad := cond $multi $GPAD 0 }}{{ $head := cond $multi $GHEAD 0 }}
     {{- $isHost := eq $L.id "host" }}
     {{- $hpad := cond $isHost 16 0 }}{{ $hhead := cond $isHost 56 0 }}
-    {{- if $hero }}{{ $hhead = cond $isHost 30 0 }}{{ end }}
+    {{- if $hero }}{{ $hhead = 0 }}{{ end }}
     {{- $avail := sub $INNER (mul 2 $hpad) }}
     {{- $maxc := div (add (sub $avail (mul 2 $pad)) 10) $CELL }}{{ if gt $K $maxc }}{{ $K = $maxc }}{{ end }}
     {{- /* size every group */ -}}
@@ -124,8 +124,10 @@
   {{- range $T.links }}
     {{- $a := index ($sc.Get "pos") .from }}{{ $b := index ($sc.Get "pos") .to }}
     {{- $fn := index ($sc.Get "N") .from }}{{ $tn := index ($sc.Get "N") .to }}
+    {{- $la := index ($sc.Get "pos") .from }}{{ $lb := index ($sc.Get "pos") .to }}
     {{- $skip := or (and (eq .from $cfg.host) (eq ($tn.parent | default "") $cfg.host)) (and (eq .to $cfg.host) (eq ($fn.parent | default "") $cfg.host)) }}
-    {{- if and $a $b (not $skip) }}
+    {{- $far := false }}{{ if and $hero $a $b }}{{ $ia := 0 }}{{ $ib := 0 }}{{ range $i, $r := $layerRects }}{{ if eq $r.id $a.layer }}{{ $ia = $i }}{{ end }}{{ if eq $r.id $b.layer }}{{ $ib = $i }}{{ end }}{{ end }}{{ if gt (sub $ia $ib) 1 }}{{ $far = true }}{{ end }}{{ if gt (sub $ib $ia) 1 }}{{ $far = true }}{{ end }}{{ end }}
+    {{- if and $a $b (not $skip) (not $far) }}
       {{- $ax := add $a.x (div $a.w 2) }}{{ $bx := add $b.x (div $b.w 2) }}
       {{- $ay := add $a.y (div $a.h 2) }}{{ $by := add $b.y (div $b.h 2) }}
       {{- $dx := sub $bx $ax }}{{ $dy := sub $by $ay }}
@@ -154,7 +156,7 @@
     {{- $off := eq (.status | default "") "stopped" }}
     <g class="nd k-{{ .kind }}{{ if .unverified }} unv{{ end }}{{ if $off }} off{{ end }}" id="n-{{ .id }}" data-id="{{ .id }}" data-layer="{{ $p.layer }}" tabindex="0">
       <rect x="{{ $p.x }}" y="{{ $p.y }}" width="{{ $p.w }}" height="{{ $p.h }}" rx="6"/>
-      <text class="nl" x="{{ add $p.x 10 }}" y="{{ add $p.y 19 }}">{{ .label | truncate 20 }}</text>
+      <text class="nl" x="{{ add $p.x 10 }}" y="{{ add $p.y 19 }}">{{ .label | truncate (cond $hero 16 20) }}</text>
       <text class="ns" x="{{ add $p.x 10 }}" y="{{ add $p.y 35 }}">{{ if $off }}stopped{{ else if .unverified }}unverified{{ else if and (isset . "count") (eq .count 0) }}idle{{ else if and (isset . "count") (gt .count 1) }}x{{ .count }} {{ .kind | truncate 10 }}{{ else }}{{ .kind | truncate 16 }}{{ end }}</text>
       <title>{{ .label }}: {{ .role }}</title>
     </g>
