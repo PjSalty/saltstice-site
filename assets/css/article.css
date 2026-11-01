@@ -111,5 +111,7 @@ h2:hover .anchor,h3:hover .anchor,h4:hover .anchor,.anchor:focus{opacity:1}
 /* lab */
 .lab-hero{padding-bottom:12px}
 .lab-art{max-width:720px;margin:36px auto 0}
+.lab-stats{margin-bottom:56px}
+.lab-live{margin-top:16px}
 .live{display:flex;align-items:center;justify-content:space-between;gap:16px}
 @media print{.site-header,.site-footer,.toc,.progress,.to-top{display:none}}

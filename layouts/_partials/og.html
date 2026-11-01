@@ -1,1 +1,22 @@
-{{- /* Placeholder until the OG generator lands in round 2. Returns nothing. */ -}}
+{{- /* Open Graph image. Returns a 1200x630 PNG resource: title set in Geist Serif over a base
+       drawn once, one image per post, incident, project and the home page, a plain base elsewhere. */ -}}
+{{- $base := resources.Get "og/base.png" -}}
+{{- $img := $base -}}
+{{- if or .IsHome (in (slice "posts" "incidents" "projects") .Section) -}}
+  {{- $serif := resources.Get "og/GeistSerif-Regular.ttf" -}}
+  {{- $mono := resources.Get "og/GeistMono-Medium.ttf" -}}
+  {{- $title := .Title -}}
+  {{- $label := partial "ptype.html" . | upper -}}
+  {{- if .IsHome }}{{ $title = site.Params.hero.title }}{{ $label = upper site.Params.hero.eyebrow }}{{ end -}}
+  {{- $lines := slice -}}
+  {{- $cur := "" -}}
+  {{- range split $title " " -}}
+    {{- if and $cur (gt (len (printf "%s %s" $cur .)) 25) }}{{ $lines = $lines | append $cur }}{{ $cur = . }}{{ else if $cur }}{{ $cur = printf "%s %s" $cur . }}{{ else }}{{ $cur = . }}{{ end -}}
+  {{- end -}}
+  {{- $lines = $lines | append $cur -}}
+  {{- $img = $img.Filter (images.Text $label (dict "color" "#ff7a3d" "size" 26 "x" 72 "y" 190 "font" $mono)) -}}
+  {{- range $i, $l := first 4 $lines -}}
+    {{- $img = $img.Filter (images.Text $l (dict "color" "#e8ebe8" "size" 72 "x" 72 "y" (add 232 (mul $i 86)) "font" $serif)) -}}
+  {{- end -}}
+{{- end -}}
+{{- return $img -}}
