@@ -20,4 +20,13 @@
   {{- end }}
   <div class="prose">{{ .Content }}</div>
 </div>
+{{- if eq .File.Path "about.md" }}
+<div class="wrap band-contact reach-wrap">
+  <div class="reach">
+    <h2>Get in touch</h2>
+    <p>The code is on GitHub and the providers are on the Terraform Registry. Security reports go through the advisory form in <a href="/.well-known/security.txt">security.txt</a>.</p>
+    <p class="cta"><a class="btn btn-primary" href="https://github.com/PjSalty" rel="noopener">GitHub profile</a><a class="btn" href="https://registry.terraform.io/namespaces/PjSalty" rel="noopener">Terraform Registry</a><a class="btn btn-ghost" href="/index.xml">RSS</a></p>
+  </div>
+</div>
+{{- end }}
 {{- end }}
