@@ -1,10 +1,13 @@
 {{- define "main" }}
-<header class="page-head">
+<header class="wrap page-head">
   <h1>{{ .Title }}</h1>
   {{- with .Description }}<p class="lede">{{ . }}</p>{{ end }}
 </header>
-{{- with .Content }}<div class="prose">{{ . }}</div>{{ end }}
-<ul class="cards">
-  {{- range .Pages.ByWeight }}{{ partial "card.html" . }}{{ end }}
-</ul>
+<div class="wrap">
+  {{- $feat := slice }}{{ range site.Params.featuredProjects }}{{ with site.GetPage (printf "/projects/%s" .) }}{{ $feat = $feat | append . }}{{ end }}{{ end }}
+  <div class="sec-head"><h2><span class="idx">01</span>Main</h2></div>
+  <ul class="proj-grid">{{ range $feat }}{{ partial "card.html" . }}{{ end }}</ul>
+  <div class="sec-head more"><h2><span class="idx">02</span>More</h2></div>
+  <ul class="proj-grid">{{ range .Pages.ByDate.Reverse }}{{ if not (in $feat .) }}{{ partial "card.html" . }}{{ end }}{{ end }}</ul>
+</div>
 {{- end }}

@@ -1,9 +1,0 @@
-{{- /* One row in a dense list. Pass the page. */ -}}
-{{- $t := "" }}
-{{- with .Params.types }}{{ $t = index . 0 }}{{ else }}{{ if eq .Section "incidents" }}{{ $t = "incident" }}{{ end }}{{ end }}
-<li class="entry"{{ with $t }} data-type="{{ . }}"{{ end }}>
-  <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
-  <a class="title" href="{{ .RelPermalink }}">{{ .Title }}</a>
-  {{- with $t }}<span class="tag-type tag-{{ . }}">{{ . }}</span>{{ else }}<span></span>{{ end }}
-  {{- if .Params.listSummary }}{{ with .Summary }}<p class="sum">{{ . | plainify | truncate 160 }}</p>{{ end }}{{ end }}
-</li>

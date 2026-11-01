@@ -1,38 +1,23 @@
 {{- define "main" }}
-<article>
-  <header class="post-head">
-    {{- partial "crumbs.html" . }}
-    <h1>{{ .Title }}</h1>
-    {{- with .Params.summary | default .Description }}{{ if $.IsPage }}{{ if or (eq $.Section "posts") (eq $.Section "incidents") (eq $.Section "projects") }}<p class="lede">{{ . }}</p>{{ end }}{{ end }}{{ end }}
-    <div class="post-meta">
-      {{- $t := "" }}{{ with .Params.types }}{{ $t = index . 0 }}{{ else }}{{ if eq .Section "incidents" }}{{ $t = "incident" }}{{ end }}{{ end }}
-      {{- with $t }}<span class="tag-type tag-{{ . }}">{{ . }}</span>{{ end }}
-      {{- if not .Date.IsZero }}{{ if or (eq .Section "posts") (eq .Section "incidents") }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}{{ end }}
-      {{- if and (ne .Params.showReadingTime false) (or (eq .Section "posts") (eq .Section "incidents") (eq .Section "projects")) }}<span>{{ .ReadingTime }} min read</span>{{ end }}
-      {{- if .File }}<a href="https://github.com/PjSalty/saltstice-site/edit/main/content/{{ .File.Path }}" rel="noopener">Edit on GitHub</a>{{ end }}
-    </div>
-  </header>
-  {{- if and (ne .Params.showToc false) (gt (len .TableOfContents) 80) (or (eq .Section "posts") (eq .Section "incidents") (eq .Section "projects")) }}
-  <details class="toc">
-    <summary>Contents</summary>
-    <nav aria-label="Table of contents">{{ .TableOfContents }}</nav>
-  </details>
+{{- if eq .File.Path "lab.md" }}
+<header class="wrap page-head lab-hero">
+  {{- partial "crumbs.html" . }}
+  <h1>{{ .Title }}</h1>
+  {{- with .Params.summary }}<p class="lede">{{ . }}</p>{{ end }}
+  <div class="lab-art">{{ partial "schematic.html" . }}</div>
+</header>
+<div class="wrap lab-stats">{{ partial "stats.html" . }}<a class="link-card lab-live" href="/telemetry/">Live telemetry, the public dashboard</a></div>
+{{- else }}
+<header class="wrap page-head">
+  {{- partial "crumbs.html" . }}
+  <h1>{{ .Title }}</h1>
+  {{- with .Params.summary | default .Description }}<p class="lede">{{ . }}</p>{{ end }}
+</header>
+{{- end }}
+<div class="wrap art-grid">
+  {{- if and (ne .Params.showToc false) (gt (len .TableOfContents) 80) }}
+  <aside class="toc" aria-label="Contents"><details><summary>Contents</summary><nav>{{ .TableOfContents }}</nav></details></aside>
   {{- end }}
   <div class="prose">{{ .Content }}</div>
-  <footer class="post-foot">
-    {{- $terms := slice }}
-    {{- range $tax := slice "topics" "tags" }}{{ range ($.GetTerms $tax) }}{{ $terms = $terms | append . }}{{ end }}{{ end }}
-    {{- if $terms }}
-    <ul class="pills" aria-label="Topics and tags">
-      {{- range $terms }}<li><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a></li>{{ end }}
-    </ul>
-    {{- end }}
-    {{- if or (eq .Section "posts") (eq .Section "incidents") }}
-    <nav class="prevnext" aria-label="More writing">
-      {{- with .PrevInSection }}<a class="prev" href="{{ .RelPermalink }}" rel="prev"><small>Newer</small>{{ .Title }}</a>{{ end }}
-      {{- with .NextInSection }}<a class="next" href="{{ .RelPermalink }}" rel="next"><small>Older</small>{{ .Title }}</a>{{ end }}
-    </nav>
-    {{- end }}
-  </footer>
-</article>
+</div>
 {{- end }}

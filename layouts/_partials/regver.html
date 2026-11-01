@@ -1,0 +1,17 @@
+{{- /* Terraform Registry facts for a PjSalty provider, fetched at build time.
+       Pass the provider name. Returns a dict: version, downloads (0 when the registry is unreachable).
+       Version falls back to data/versions.yaml so offline builds stay green. */ -}}
+{{- $name := . -}}
+{{- $v := index site.Data.versions $name -}}
+{{- $dl := 0 -}}
+{{- $url := printf "https://registry.terraform.io/v1/providers/PjSalty/%s" $name -}}
+{{- with try (resources.GetRemote $url) -}}
+  {{- with .Err -}}
+    {{- warnf "registry %q: %s (using fallback %s)" $name . $v -}}
+  {{- else with .Value -}}
+    {{- $j := .Content | transform.Unmarshal -}}
+    {{- with $j.version }}{{ $v = . }}{{ end -}}
+    {{- with $j.downloads }}{{ $dl = . }}{{ end -}}
+  {{- end -}}
+{{- end -}}
+{{- return (dict "version" $v "downloads" $dl) -}}

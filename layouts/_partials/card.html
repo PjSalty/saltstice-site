@@ -1,5 +1,16 @@
-<li class="card">
+{{- /* Project card. Pass the page. Language and registry facts are derived, never typed in. */ -}}
+{{- $tags := .Params.tags | default slice -}}
+{{- $lang := "" -}}
+{{- range $k, $v := dict "golang" "Go" "go" "Go" "python" "Python" "csharp" "C#" "cpp" "C++" "rust" "Rust" "typescript" "TypeScript" -}}
+  {{- if and (not $lang) (in $tags $k) }}{{ $lang = $v }}{{ end -}}
+{{- end -}}
+{{- $reg := "" -}}
+{{- if in $tags "terraform" }}{{ range slice "truenas" "unifi" }}{{ if in $tags . }}{{ $reg = . }}{{ end }}{{ end }}{{ end -}}
+<li class="proj{{ if $reg }} proj-reg{{ end }}">
+  <p class="meta">{{ with $lang }}<span class="lang">{{ . }}</span>{{ end }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006" }}</time></p>
   <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
-  {{- with .Params.summary | default .Summary }}<p>{{ . | plainify | truncate 150 }}</p>{{ end }}
-  {{- with .Params.tags }}<span class="meta">{{ delimit (first 4 .) " · " }}</span>{{ end }}
+  {{- with .Params.summary }}<p class="sum">{{ . | plainify | truncate 150 }}</p>{{ end }}
+  {{- if $reg }}{{ $rv := partial "regver.html" $reg }}
+  <p class="facts"><span class="fact"><b>v{{ $rv.version }}</b> registry</span>{{ if $rv.downloads }}<span class="fact"><b>{{ lang.FormatNumber 0 $rv.downloads }}</b> downloads</span>{{ end }}</p>{{ end }}
+  <p class="tagline">{{ delimit (first 4 $tags) " " }}</p>
 </li>

@@ -1,0 +1,10 @@
+{{- /* Stat tiles from data/lab.yaml. */ -}}
+{{- $l := site.Data.lab -}}
+<ul class="stats" aria-label="Lab numbers">
+  <li class="stat"><span class="k">VMs running</span><span class="v">{{ $l.vms_running }}</span><span class="s">on one hypervisor</span></li>
+  <li class="stat"><span class="k">K8s nodes</span><span class="v">{{ $l.k8s_nodes }}</span><span class="s">plus {{ $l.k8s_ci_nodes }} autoscaled CI</span></li>
+  <li class="stat"><span class="k">RAM allocated</span><span class="v">{{ $l.ram_allocated_gib }}<small> / {{ $l.ram_total_gib }} GiB</small></span><progress class="meter" value="{{ $l.ram_allocated_gib }}" max="{{ $l.ram_total_gib }}" aria-label="RAM allocated">{{ $l.ram_allocated_gib }} of {{ $l.ram_total_gib }} GiB</progress></li>
+  <li class="stat"><span class="k">RKE2</span><span class="v">{{ index (split $l.rke2_version "+") 0 }}</span><span class="s">Cilium, Flux</span></li>
+  <li class="stat"><span class="k">TrueNAS</span><span class="v">{{ $l.truenas_version }}</span><span class="s">NFS, iSCSI, S3</span></li>
+  <li class="stat"><span class="k">RouterOS</span><span class="v">{{ $l.routeros_version }}</span><span class="s">BGP to the cluster</span></li>
+</ul>

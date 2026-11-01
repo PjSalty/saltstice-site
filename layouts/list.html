@@ -1,18 +1,19 @@
 {{- define "main" }}
-<header class="page-head">
+<header class="wrap page-head">
   {{- partial "crumbs.html" . }}
   <h1>{{ .Title }}</h1>
   {{- with .Description }}<p class="lede">{{ . }}</p>{{ end }}
+  <p class="count">{{ len .Pages }} {{ if eq (len .Pages) 1 }}entry{{ else }}entries{{ end }}</p>
 </header>
-{{- with .Content }}<div class="prose">{{ . }}</div>{{ end }}
-{{- $p := .Paginate (sort .Pages "Date" "desc") 40 }}
-<ul class="entries">
-  {{- range $p.Pages }}{{ partial "entry.html" . }}{{ end }}
-</ul>
-{{- if gt $p.TotalPages 1 }}
-<nav class="pager" aria-label="Pagination">
-  {{- if $p.HasPrev }}<a href="{{ $p.Prev.URL }}">newer</a>{{ else }}<span></span>{{ end }}
-  {{- if $p.HasNext }}<a href="{{ $p.Next.URL }}">older</a>{{ end }}
-</nav>
-{{- end }}
+<div class="wrap">
+  {{- with .Content }}<div class="prose">{{ . }}</div>{{ end }}
+  {{- $p := .Paginate (sort .Pages "Date" "desc") 40 }}
+  <ul class="rows">{{ range $p.Pages }}{{ partial "row.html" . }}{{ end }}</ul>
+  {{- if gt $p.TotalPages 1 }}
+  <nav class="pager" aria-label="Pagination">
+    {{- if $p.HasPrev }}<a href="{{ $p.Prev.URL }}">newer</a>{{ else }}<span></span>{{ end }}
+    {{- if $p.HasNext }}<a href="{{ $p.Next.URL }}">older</a>{{ end }}
+  </nav>
+  {{- end }}
+</div>
 {{- end }}

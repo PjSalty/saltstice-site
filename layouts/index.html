@@ -1,36 +1,65 @@
 {{- define "main" }}
+{{- $h := site.Params.hero }}
 <section class="hero">
-  <h1>{{ site.Title }}</h1>
-  {{ .Content }}
-  <div class="links">
-    <a href="/writing/">Writing</a>
-    <a href="/lab/">Lab</a>
-    <a href="/projects/">Projects</a>
-    <a href="/telemetry/">Telemetry</a>
-    <a href="/about/">About</a>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="dot" aria-hidden="true"></span>{{ $h.eyebrow }}</p>
+      <h1>{{ $h.title }}</h1>
+      <div class="lead">{{ .Content }}</div>
+      <p class="cta"><a class="btn btn-primary" href="/projects/">Projects</a><a class="btn" href="/incidents/">Postmortems</a><a class="btn btn-ghost" href="https://github.com/PjSalty" rel="noopener">GitHub</a></p>
+    </div>
+    <figure class="hero-art">{{ partial "schematic.html" . }}<figcaption class="mono">Schematic of the lab. Numbers below come from the same data file the Lab page uses.</figcaption></figure>
   </div>
 </section>
 
-{{- with .Params.featured }}
-<div class="section-head"><h2>Start here</h2></div>
-<ul class="entries">
-  {{- range . }}
-    {{- with site.GetPage . }}{{ partial "entry.html" . }}{{ end }}
-  {{- end }}
-</ul>
-{{- end }}
+<section class="band" aria-labelledby="h-proof">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="h-proof"><span class="idx">01</span>The lab, right now</h2><a href="/lab/">Hardware and stack</a></div>
+    {{ partial "stats.html" . }}
+  </div>
+</section>
 
-<div class="section-head"><h2>Recent</h2><a href="/writing/">All writing</a></div>
-<ul class="entries">
-  {{- range first 8 (sort (where site.RegularPages "Section" "in" (slice "posts" "incidents")) "Date" "desc") }}
-    {{ partial "entry.html" . }}
-  {{- end }}
-</ul>
+<section class="band" aria-labelledby="h-ship">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="h-ship"><span class="idx">02</span>Shipped</h2><a href="/projects/">All projects</a></div>
+    <ul class="proj-grid">
+      {{- range site.Params.featuredProjects }}{{ with site.GetPage (printf "/projects/%s" .) }}{{ partial "card.html" . }}{{ end }}{{ end }}
+    </ul>
+  </div>
+</section>
 
-<div class="section-head"><h2>Projects</h2><a href="/projects/">All projects</a></div>
-<ul class="cards">
-  {{- range first 6 (where site.RegularPages "Section" "projects") }}
-    {{- partial "card.html" . }}
-  {{- end }}
-</ul>
+<section class="band" aria-labelledby="h-inc">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="h-inc"><span class="idx">03</span>Postmortems</h2><a href="/incidents/">All incidents</a></div>
+    <ul class="icards">
+      {{- range first 3 (where site.RegularPages "Section" "incidents").ByDate.Reverse }}{{ partial "icard.html" . }}{{ end }}
+    </ul>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="h-start">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="h-start"><span class="idx">04</span>Start here</h2><a href="/start-here/">Reading list</a></div>
+    <ul class="pcards">
+      {{- range first 6 (.Params.featured | default slice) }}{{ with site.GetPage . }}{{ partial "pcard.html" . }}{{ end }}{{ end }}
+    </ul>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="h-new">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="h-new"><span class="idx">05</span>Latest</h2><a href="/writing/">All writing</a></div>
+    <ul class="lines">
+      {{- range first 8 (sort (where site.RegularPages "Section" "in" (slice "posts" "incidents")) "Date" "desc") }}{{ partial "line.html" . }}{{ end }}
+    </ul>
+  </div>
+</section>
+
+<section class="band band-contact" aria-labelledby="h-reach">
+  <div class="wrap reach">
+    <h2 id="h-reach">Get in touch</h2>
+    <p>The code is on GitHub and the providers are on the Terraform Registry. Security reports go through the advisory form in <a href="/.well-known/security.txt">security.txt</a>.</p>
+    <p class="cta"><a class="btn btn-primary" href="https://github.com/PjSalty" rel="noopener">GitHub profile</a><a class="btn" href="/about/">About</a><a class="btn btn-ghost" href="/index.xml">RSS</a></p>
+  </div>
+</section>
 {{- end }}

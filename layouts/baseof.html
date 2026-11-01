@@ -3,13 +3,11 @@
 <head>
 {{- partial "head.html" . }}
 </head>
-<body>
+<body class="pg-{{ .Kind }}{{ with .Section }} sec-{{ . }}{{ end }}">
 <a class="skip" href="#main">Skip to content</a>
 {{- partial "header.html" . }}
 <main id="main" tabindex="-1">
-  <div class="wrap">
 {{- block "main" . }}{{ end }}
-  </div>
 </main>
 {{- partial "footer.html" . }}
 {{- $app := resources.Get "js/app.js" | minify | fingerprint }}

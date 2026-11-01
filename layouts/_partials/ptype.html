@@ -1,0 +1,6 @@
+{{- /* Content type of a page: build, runbook, note, incident, project or page. */ -}}
+{{- $t := "page" -}}
+{{- with .Params.types }}{{ $t = index . 0 }}{{ else }}
+  {{- if eq $.Section "incidents" }}{{ $t = "incident" }}{{ else if eq $.Section "projects" }}{{ $t = "project" }}{{ end -}}
+{{- end -}}
+{{- return $t -}}

@@ -1,15 +1,20 @@
 {{- define "main" }}
-<header class="page-head">
+<header class="wrap page-head">
   <h1>{{ .Title }}</h1>
-  <p class="lede">Searches titles, tags and full text in your browser.</p>
+  <p class="lede">Titles, tags and full text, searched in your browser. Press <span class="kbd">/</span> on any page to jump here.</p>
 </header>
-<form role="search" action="/search/" method="get" id="search-form">
-  <label for="q" class="visually-hidden">Search</label>
-  <input class="search-box" id="q" name="q" type="search" autocomplete="off" maxlength="80" placeholder="{{ .Params.placeholder | default "Search" }}" data-index="{{ "index.json" | relURL }}">
-</form>
-<p class="search-status" id="search-status" role="status" aria-live="polite"></p>
-<ul class="results" id="results"></ul>
-<noscript><p>Search needs JavaScript. The <a href="/archives/">archive</a> lists everything.</p></noscript>
+<div class="wrap">
+  <form role="search" action="/search/" method="get" id="search-form">
+    <label for="q" class="visually-hidden">Search</label>
+    <input class="search-box" id="q" name="q" type="search" autocomplete="off" maxlength="80" placeholder="{{ .Params.placeholder | default "Search" }}" data-index="{{ "index.json" | relURL }}">
+  </form>
+  <p class="search-status" id="search-status" role="status" aria-live="polite"></p>
+  <ul class="results" id="results"></ul>
+  <div class="hint" id="search-hint">
+    <p class="topic-row"><span class="lab">Try a topic</span>{{ range first 12 site.Taxonomies.topics.ByCount }}<a class="pill" href="{{ .Page.RelPermalink }}">{{ .Page.LinkTitle }}</a>{{ end }}</p>
+  </div>
+  <noscript><p class="empty">Search needs JavaScript. The <a href="/archives/">archive</a> lists everything.</p></noscript>
+</div>
 {{- end }}
 {{- define "scripts" }}
 {{- $s := resources.Get "js/search.js" | minify | fingerprint }}

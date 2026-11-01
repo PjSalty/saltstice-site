@@ -1,17 +1,19 @@
 {{- define "main" }}
-<header class="page-head">
+{{- $writing := where site.RegularPages "Section" "in" (slice "posts" "incidents") }}
+<header class="wrap page-head">
   <h1>{{ .Title }}</h1>
   {{- with .Description }}<p class="lede">{{ . }}</p>{{ end }}
+  <p class="count">{{ len $writing }} entries, newest first</p>
 </header>
-<div class="filter" data-filter-bar role="group" aria-label="Filter by type">
-  <button type="button" data-filter="all" aria-pressed="true">All</button>
-  <button type="button" data-filter="build" aria-pressed="false">Build</button>
-  <button type="button" data-filter="runbook" aria-pressed="false">Runbook</button>
-  <button type="button" data-filter="incident" aria-pressed="false">Incident</button>
-  <button type="button" data-filter="note" aria-pressed="false">Note</button>
+<div class="wrap">
+  <div class="filters" data-filter-bar role="group" aria-label="Filter by type">
+    <button type="button" data-filter="all" aria-pressed="true">All</button>
+    <button type="button" data-filter="build" aria-pressed="false">Build</button>
+    <button type="button" data-filter="runbook" aria-pressed="false">Runbook</button>
+    <button type="button" data-filter="incident" aria-pressed="false">Incident</button>
+    <button type="button" data-filter="note" aria-pressed="false">Note</button>
+  </div>
+  <p class="topic-row"><span class="lab">Topics</span>{{ range first 10 site.Taxonomies.topics.ByCount }}<a class="pill" href="{{ .Page.RelPermalink }}">{{ .Page.LinkTitle }}</a>{{ end }}<a class="pill" href="/topics/">All topics</a></p>
+  <ul class="rows">{{ range (sort $writing "Date" "desc") }}{{ partial "row.html" . }}{{ end }}</ul>
 </div>
-{{- $writing := where site.RegularPages "Section" "in" (slice "posts" "incidents") }}
-<ul class="entries">
-  {{- range (sort $writing "Date" "desc") }}{{ partial "entry.html" . }}{{ end }}
-</ul>
 {{- end }}

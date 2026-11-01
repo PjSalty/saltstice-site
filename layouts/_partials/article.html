@@ -1,0 +1,53 @@
+{{- /* Shared reading view for posts and incidents. Pass the page. */ -}}
+{{- $t := partial "ptype.html" . -}}
+{{- $inc := eq $t "incident" -}}
+<article class="art">
+  <header class="wrap art-head">
+    {{- partial "crumbs.html" . }}
+    <p class="meta">{{ partial "chip.html" $t }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time><span>{{ .ReadingTime }} min read</span>{{ with .Params.topics }}<span class="topics">{{ delimit . ", " }}</span>{{ end }}</p>
+    <h1>{{ .Title }}</h1>
+    {{- with .Params.summary | default .Description }}<p class="lede">{{ . }}</p>{{ end }}
+    {{- if $inc }}
+    {{- $heads := slice }}{{ range .Fragments.Headings }}{{ $heads = $heads | append . }}{{ end }}
+    {{- $root := "" }}{{ $fix := "" }}
+    {{- range $heads }}{{ $lt := lower .Title }}{{ if and (not $root) (findRE `root cause|why ` $lt) }}{{ $root = . }}{{ end }}{{ if and (not $fix) (findRE `fix|what i changed|what i did` $lt) }}{{ $fix = . }}{{ end }}{{ end }}
+    <dl class="pm">
+      <div><dt>Date</dt><dd>{{ .Date.Format "2006-01-02" }}</dd></div>
+      <div><dt>Areas</dt><dd>{{ range .Params.topics }}<span class="tag">{{ . }}</span>{{ end }}</dd></div>
+      <div><dt>Read</dt><dd>{{ .ReadingTime }} min</dd></div>
+      <div><dt>Path</dt><dd><ol class="path"><li><a href="#main">Symptom</a></li>{{ with $root }}<li><a href="#{{ .ID }}">Cause</a></li>{{ end }}{{ with $fix }}<li><a href="#{{ .ID }}">Fix</a></li>{{ end }}</ol></dd></div>
+    </dl>
+    {{- else }}
+    <div class="art-cover">{{ partial "cover.html" . }}</div>
+    {{- end }}
+  </header>
+  <div class="wrap art-grid">
+    {{- if and (ne .Params.showToc false) (gt (len .TableOfContents) 80) }}
+    <aside class="toc" aria-label="Contents">
+      <details>
+        <summary>Contents</summary>
+        <nav>{{ .TableOfContents }}</nav>
+      </details>
+    </aside>
+    {{- end }}
+    <div class="prose">{{ .Content }}</div>
+  </div>
+  <footer class="wrap art-foot">
+    {{- $terms := slice }}
+    {{- range $tax := slice "topics" "tags" }}{{ range ($.GetTerms $tax) }}{{ $terms = $terms | append . }}{{ end }}{{ end }}
+    {{- if $terms }}
+    <ul class="pills" aria-label="Topics and tags">{{ range $terms }}<li><a class="pill" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a></li>{{ end }}</ul>
+    {{- end }}
+    <nav class="prevnext" aria-label="More writing">
+      {{- with .PrevInSection }}<a class="prev" href="{{ .RelPermalink }}" rel="prev"><small>Newer</small>{{ .Title }}</a>{{ end }}
+      {{- with .NextInSection }}<a class="next" href="{{ .RelPermalink }}" rel="next"><small>Older</small>{{ .Title }}</a>{{ end }}
+    </nav>
+    {{- $rel := first 3 (where (site.RegularPages.Related .) "Section" "in" (slice "posts" "incidents")) }}
+    {{- if $rel }}
+    <section class="related" aria-labelledby="h-rel">
+      <div class="sec-head"><h2 id="h-rel">Read next</h2></div>
+      <ul class="pcards">{{ range $rel }}{{ partial "pcard.html" . }}{{ end }}</ul>
+    </section>
+    {{- end }}
+  </footer>
+</article>

@@ -1,0 +1,21 @@
+{{- define "main" }}
+{{- $inc := where site.RegularPages "Section" "incidents" }}
+<header class="wrap page-head">
+  {{- partial "crumbs.html" . }}
+  <h1>{{ .Title }}</h1>
+  <p class="lede">{{ .Description }} Each one is what broke, why, and what changed. Wrong calls stay in.</p>
+  <p class="count">{{ len $inc }} postmortems</p>
+  {{- /* One cell per month, newest on the right, shaded by how many incidents landed in it. */}}
+  {{- $months := slice }}
+  {{- $now := now }}
+  {{- range seq 0 11 }}{{ $d := $now.AddDate 0 (int (sub 0 (sub 11 .))) 0 }}{{ $months = $months | append ($d.Format "2006-01") }}{{ end }}
+  <div class="density" role="img" aria-label="Incidents per month over the last 12 months">
+    {{- range $months }}{{ $m := . }}{{ $n := 0 }}{{ range $inc }}{{ if eq (.Date.Format "2006-01") $m }}{{ $n = add $n 1 }}{{ end }}{{ end }}<i class="{{ if ge $n 3 }}on3{{ else if eq $n 2 }}on2{{ else if eq $n 1 }}on1{{ end }}"></i>{{ end }}
+  </div>
+  <p class="density-cap"><span>{{ index $months 0 }}</span><span>{{ index $months 11 }}</span></p>
+</header>
+<div class="wrap">
+  <ul class="icards">{{ range $inc.ByDate.Reverse }}{{ partial "icard.html" . }}{{ end }}</ul>
+</div>
+{{- end }}
+

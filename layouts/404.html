@@ -1,6 +1,12 @@
 {{- define "main" }}
-<header class="page-head">
-  <h1>Not found</h1>
-  <p class="lede">That page doesn't exist. Try the <a href="/writing/">writing index</a> or <a href="/search/">search</a>.</p>
-</header>
+<div class="wrap lost">
+  <p class="code" aria-hidden="true">404</p>
+  <h1>No route to that page</h1>
+  <p>It moved, or it never existed. Try the writing index or search.</p>
+  <p class="cta"><a class="btn btn-primary" href="/writing/">Writing</a><a class="btn" href="/search/">Search</a><a class="btn btn-ghost" href="/">Home</a></p>
+  <div class="lost-list">
+    <div class="sec-head"><h2>Latest</h2></div>
+    <ul class="lines">{{ range first 5 (sort (where site.RegularPages "Section" "in" (slice "posts" "incidents")) "Date" "desc") }}{{ partial "line.html" . }}{{ end }}</ul>
+  </div>
+</div>
 {{- end }}

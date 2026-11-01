@@ -2,6 +2,7 @@
 (function () {
   var input = document.getElementById('q');
   var out = document.getElementById('results');
+  var hint = document.getElementById('search-hint');
   var status = document.getElementById('search-status');
   if (!input || !out) return;
 
@@ -40,7 +41,8 @@
   function run(q) {
     var terms = q.toLowerCase().split(/\s+/).filter(Boolean);
     out.textContent = '';
-    if (!terms.length) { status.textContent = ''; return; }
+    if (!terms.length) { status.textContent = ''; if (hint) hint.hidden = false; return; }
+    if (hint) hint.hidden = true;
     load().then(function (list) {
       var hits = [];
       list.forEach(function (d) {
@@ -58,6 +60,7 @@
       });
       hits.sort(function (a, b) { return b.s - a.s; });
       status.textContent = hits.length + (hits.length === 1 ? ' result' : ' results');
+      if (!hits.length) { var e = document.createElement('li'); e.className = 'empty'; e.textContent = 'Nothing matches that. Try fewer words, or a topic.'; out.appendChild(e); }
       hits.slice(0, 30).forEach(function (h) {
         var li = document.createElement('li');
         li.innerHTML = '<a href="' + esc(h.d.permalink) + '">' + esc(h.d.title) + '</a><p>' + snippet(h.d, terms) + '</p>';

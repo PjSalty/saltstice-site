@@ -40,11 +40,24 @@ markup:
     style: github
     codeFences: true
     lineNos: false
+  tableOfContents:
+    startLevel: 2
+    endLevel: 3
 
 params:
   env: production
   description: Platform engineer. Notes on running a production homelab as code.
   author: Salty
+  featuredProjects:
+    - terraform-provider-truenas
+    - terraform-provider-unifi
+    - homelab-cli
+    - saltstice-homelab
+    - jellyfin-fork
+    - jellyfin-pgsql
+  hero:
+    eyebrow: Platform engineer
+    title: Running a production homelab as code.
 
 menu:
   main:
@@ -52,6 +65,4 @@ menu:
     - {identifier: incidents, name: Incidents, url: /incidents/, weight: 20}
     - {identifier: projects, name: Projects, url: /projects/, weight: 30}
     - {identifier: lab, name: Lab, url: /lab/, weight: 40}
-    - {identifier: telemetry, name: Telemetry, url: /telemetry/, weight: 50}
-    - {identifier: about, name: About, url: /about/, weight: 60}
-    - {identifier: search, name: Search, url: /search/, weight: 70}
+    - {identifier: about, name: About, url: /about/, weight: 50}

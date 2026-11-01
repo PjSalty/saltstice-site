@@ -1,12 +1,12 @@
 {{- define "main" }}
-<header class="page-head">
+<header class="wrap page-head">
   {{- partial "crumbs.html" . }}
   <h1>{{ .Title }}</h1>
   {{- with .Description }}<p class="lede">{{ . }}</p>{{ end }}
 </header>
-<ul class="pills">
-  {{- range .Data.Terms.Alphabetical }}
-  <li><a href="{{ .Page.RelPermalink }}">{{ .Page.LinkTitle }}<span class="n">{{ .Count }}</span></a></li>
-  {{- end }}
-</ul>
+<div class="wrap">
+  <ul class="pills">
+    {{- range .Data.Terms.Alphabetical }}<li><a class="pill" href="{{ .Page.RelPermalink }}">{{ .Page.LinkTitle }}<span class="n">{{ .Count }}</span></a></li>{{ end }}
+  </ul>
+</div>
 {{- end }}

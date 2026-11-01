@@ -1,0 +1,42 @@
+{{- /* Hand-built lab schematic. Decorative but accurate to data/lab.yaml: 3 control plane + 3 worker nodes, autoscaled CI nodes. */ -}}
+<svg class="sx" viewBox="0 0 600 430" role="img" aria-labelledby="sx-t sx-d" focusable="false">
+<title id="sx-t">The lab as a schematic</title>
+<desc id="sx-d">A rack with a router, two switches and a Dell R740xd running Proxmox. Inside it: three Kubernetes control plane nodes, three workers, autoscaled CI nodes and a TrueNAS VM. A BGP link runs from the router to the cluster.</desc>
+<g class="sx-rack">
+  <rect class="sx-frame" x="16" y="24" width="196" height="340" rx="6"/>
+  <text class="sx-t sx-cap" x="16" y="14">RACK</text>
+  <g class="sx-unit"><rect x="28" y="38" width="172" height="26" rx="3"/><text class="sx-t" x="40" y="55">RB4011</text><text class="sx-t sx-dim" x="112" y="55">router</text><circle class="led d1" cx="184" cy="51" r="2.5"/></g>
+  <g class="sx-unit"><rect x="28" y="72" width="172" height="26" rx="3"/><text class="sx-t" x="40" y="89">CRS317</text><text class="sx-t sx-dim" x="112" y="89">10G agg</text><circle class="led d2" cx="184" cy="85" r="2.5"/></g>
+  <g class="sx-unit"><rect x="28" y="106" width="172" height="26" rx="3"/><text class="sx-t" x="40" y="123">CRS328</text><text class="sx-t sx-dim" x="112" y="123">PoE access</text><circle class="led d3" cx="184" cy="119" r="2.5"/></g>
+  <g class="sx-unit sx-hot"><rect x="28" y="144" width="172" height="62" rx="3"/><text class="sx-t sx-b" x="40" y="164">R740xd</text><text class="sx-t sx-dim" x="112" y="164">Proxmox VE</text><circle class="led d1" cx="184" cy="158" r="2.5"/>
+    <path class="sx-bays" d="M40 180h10v14H40zM54 180h10v14H54zM68 180h10v14H68zM82 180h10v14H82zM96 180h10v14H96zM110 180h10v14H110zM124 180h10v14H124zM138 180h10v14H138zM152 180h10v14H152zM166 180h10v14H166z"/></g>
+  <path class="sx-blank" d="M28 216h172v22H28zM28 246h172v22H28zM28 276h172v22H28zM28 306h172v22H28z"/>
+  <g class="sx-unit"><rect x="28" y="376" width="172" height="34" rx="3"/><text class="sx-t" x="40" y="397">UPS</text><text class="sx-t sx-dim" x="112" y="397">1500VA, NUT</text></g>
+</g>
+<g class="sx-host">
+  <rect class="sx-frame sx-dash" x="248" y="24" width="336" height="386" rx="8"/>
+  <text class="sx-t sx-cap" x="248" y="14">PROXMOX VE ON THE R740xd</text>
+  <path class="sx-flow" d="M200 51H228V70H570"/>
+  <path class="sx-flow" d="M311 70V86M417 70V86M523 70V86"/>
+  <text class="sx-t sx-acc" x="236" y="64" text-anchor="end">BGP</text>
+  <g class="sx-grp">
+    <g class="sx-node"><rect x="264" y="86" width="94" height="38" rx="4"/><text class="sx-t" x="311" y="104" text-anchor="middle">master-1</text><text class="sx-t sx-dim" x="311" y="117" text-anchor="middle">etcd</text></g>
+    <g class="sx-node"><rect x="370" y="86" width="94" height="38" rx="4"/><text class="sx-t" x="417" y="104" text-anchor="middle">master-2</text><text class="sx-t sx-dim" x="417" y="117" text-anchor="middle">etcd</text></g>
+    <g class="sx-node"><rect x="476" y="86" width="94" height="38" rx="4"/><text class="sx-t" x="523" y="104" text-anchor="middle">master-3</text><text class="sx-t sx-dim" x="523" y="117" text-anchor="middle">etcd</text></g>
+  </g>
+  <path class="sx-wire" d="M311 124V164M417 124V164M523 124V164"/>
+  <g class="sx-grp">
+    <g class="sx-node sx-hot"><rect x="264" y="164" width="94" height="38" rx="4"/><text class="sx-t" x="311" y="182" text-anchor="middle">worker-1</text><text class="sx-t sx-acc" x="311" y="195" text-anchor="middle">GPU</text></g>
+    <g class="sx-node"><rect x="370" y="164" width="94" height="38" rx="4"/><text class="sx-t" x="417" y="182" text-anchor="middle">worker-2</text></g>
+    <g class="sx-node"><rect x="476" y="164" width="94" height="38" rx="4"/><text class="sx-t" x="523" y="182" text-anchor="middle">worker-3</text></g>
+  </g>
+  <path class="sx-flow sx-slow" d="M364 202V336M470 202V336"/>
+  <g class="sx-grp sx-auto">
+    <g class="sx-node"><rect x="264" y="232" width="94" height="38" rx="4"/><text class="sx-t" x="311" y="250" text-anchor="middle">ci-pool</text><text class="sx-t sx-dim" x="311" y="263" text-anchor="middle">Karpenter</text></g>
+    <g class="sx-node"><rect x="370" y="232" width="94" height="38" rx="4"/><text class="sx-t" x="417" y="250" text-anchor="middle">ci-pool</text><text class="sx-t sx-dim" x="417" y="263" text-anchor="middle">Karpenter</text></g>
+    <g class="sx-node"><rect x="476" y="232" width="94" height="38" rx="4"/><text class="sx-t" x="523" y="250" text-anchor="middle">ci-pool</text><text class="sx-t sx-dim" x="523" y="263" text-anchor="middle">Karpenter</text></g>
+  </g>
+  <text class="sx-t sx-dim" x="264" y="298">autoscaled, on demand</text>
+  <g class="sx-node sx-store"><rect x="264" y="336" width="306" height="52" rx="4"/><text class="sx-t sx-b" x="280" y="358">TrueNAS</text><text class="sx-t sx-dim" x="280" y="376">NFS, iSCSI, S3</text><circle class="led d2" cx="552" cy="362" r="2.5"/></g>
+</g>
+</svg>
