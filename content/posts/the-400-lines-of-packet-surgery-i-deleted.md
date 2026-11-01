@@ -24,7 +24,7 @@ So the first idea was the obvious one: if the realm advertises a bad address, si
 
 ## The three edits
 
-The client's realm session is a stream of length-framed BNCS packets, each tagged with a message id. Pinning the address meant catching three of them, verified line by line against PvPGN 1.99.7.2.1 source so the edits matched exactly what the server would parse back out:
+The client's realm session is a stream of length-framed BNCS packets, each tagged with a message id. Pinning the address meant catching three of them, verified line by line against the PvPGN 1.99 source so the edits matched exactly what the server would parse back out:
 
 1. **Drop `SID_CLIENT_UNKNOWN_1B` (0x1b).** The retail client derives this one from its own UDP self-test and uses it to advertise the address it thinks it's reachable at. Behind NAT that's the unreachable home WAN address, so the packet had to go.
 2. **Inject our own `0x1b`** carrying the relay's address, timed to land before `SID_STARTADVEX3` (0x1c), the game-creation packet, so PvPGN had the right host address in hand before it created the game.

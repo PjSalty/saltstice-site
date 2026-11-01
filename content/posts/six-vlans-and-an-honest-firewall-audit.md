@@ -13,14 +13,14 @@ The whole homelab hangs off one MikroTik RB4011 and two CRS switches, split into
 
 | VLAN | Subnet | What lives there |
 |---|---|---|
-| 1 management | <mgmt-ip>/24 | router, switches, BMC |
-| 20 infrastructure | <vlan-cidr> | Git forge, Harbor, NetBox, DNS, HAProxy pair, CI runner |
-| 30 kubernetes | <vlan-cidr> | RKE2 nodes |
-| 40 storage | <vlan-cidr> | NAS, iSCSI and NFS traffic |
-| 50 applications | <vlan-cidr> | ingress VIPs, user-facing services |
-| 60 DMZ | <vlan-cidr> | internet-exposed and untrusted workloads |
+| management | <mgmt-ip>/24 | router, switches, out-of-band management |
+| infrastructure | <vlan-cidr> | Git forge, Harbor, NetBox, DNS, HAProxy pair, CI runner |
+| kubernetes | <vlan-cidr> | RKE2 nodes |
+| storage | <vlan-cidr> | NAS, iSCSI and NFS traffic |
+| applications | <vlan-cidr> | ingress VIPs, user-facing services |
+| DMZ | <vlan-cidr> | internet-exposed and untrusted workloads |
 
-Cross-VLAN traffic transits the router, so every VLAN pair gets an explicit policy. A compromised DMZ box has no path to the Kubernetes API. Storage I/O stays off the broadcast domain that carries latency-sensitive control traffic. VLAN 1 stays native because the BMC and switches default there, which is a single-router trade-off.
+Cross-VLAN traffic transits the router, so every VLAN pair gets an explicit policy. A compromised DMZ box has no path to the Kubernetes API. Storage I/O stays off the broadcast domain that carries latency-sensitive control traffic. The management VLAN stays native because the switches default there, which is a single-router trade-off.
 
 The K8s API sits behind an HAProxy pair on the infrastructure VLAN, with a keepalived VRRP VIP that balances across the three control-plane nodes. Nodes only ever know the VIP, so a master can die or drain without anyone reconfiguring kubeconfigs. After failover, a stale ARP entry on the peer once kept the VIP pointing nowhere. Restarting keepalived on the survivor clears it.
 

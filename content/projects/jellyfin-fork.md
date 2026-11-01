@@ -2,12 +2,12 @@
 title: jellyfin-fork
 date: 2026-09-27
 lastmod: 2026-11-01
-summary: Jellyfin 12.2 plus a short patch series so more than one replica can run against PostgreSQL.
+summary: Jellyfin plus a short patch series so more than one replica can run against PostgreSQL.
 tags: [jellyfin, kubernetes, csharp, postgres]
 slug: jellyfin-fork
 ---
 
-[jellyfin-fork](https://github.com/PjSalty/jellyfin-fork) is an overlay build, not a diverged fork. `UPSTREAM_REF` pins an upstream release (v12.2), `patches/` holds the changes with their intent and drop-when conditions in the commit messages, and CI reassembles from pristine upstream on every run. GPL-2.0, same as upstream.
+[jellyfin-fork](https://github.com/PjSalty/jellyfin-fork) is an overlay build, not a diverged fork. `UPSTREAM_REF` pins an upstream release (production is on the {{< lab "jellyfin_version" >}} line right now), `patches/` holds the changes with their intent and drop-when conditions in the commit messages, and CI reassembles from pristine upstream on every run. GPL-2.0, same as upstream.
 
 ## What the patches do
 
@@ -26,7 +26,7 @@ The image optionally bundles rffmpeg, so transcodes can run on a remote GPU work
 
 ## Releases
 
-12.1-salty.1, .2 and .3 shipped 2026-09-27 and 2026-09-28. 12.2-salty.1 shipped 2026-10-12. The 12.2 upgrade had two surprises: the bundled hls.js 1.6.16 demuxer worker breaks under jellyfin-web's minifier (the workaround is `enableWorker=false`), and the `MigrateRatingLevels` migration cleared parental scores.
+12.1-salty.1, .2 and .3 shipped 2026-09-27 and 2026-09-28. 12.2-salty.1 shipped 2026-10-12. The 12.2 upgrade had two surprises: the bundled hls.js 1.6.16 demuxer worker breaks under jellyfin-web's minifier (the workaround is `enableWorker=false`), and the `MigrateRatingLevels` migration cleared parental scores. Later releases are on the [releases page](https://github.com/PjSalty/jellyfin-fork/releases).
 
 The design notes are in [running more than one Jellyfin pod](/posts/making-jellyfin-horizontally-scalable/). The database provider is [jellyfin-pgsql](/projects/jellyfin-pgsql/).
 

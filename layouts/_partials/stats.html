@@ -1,12 +1,12 @@
-{{- /* Lab numbers. Build-time values come from data/lab.yaml; live.js swaps in the public API values and marks them live.
-       TrueNAS and RouterOS have no live source and stay as the coarse data values. */ -}}
-{{- $l := site.Data.lab -}}
+{{- /* Lab numbers. Each value is read from the public telemetry API at build
+       time (livefact partial) and refreshed by live.js in the browser. Only
+       facts with a live source appear here; release lines are major.minor. */ -}}
 <ul class="stats" aria-label="Lab numbers">
-  <li class="stat"><span class="k">VMs running</span><span class="v" data-live="vms_running">{{ $l.vms_running }}</span></li>
-  <li class="stat"><span class="k">K8s nodes</span><span class="v" data-live="k8s_nodes">{{ $l.k8s_nodes }}</span><span class="s">plus an autoscaled CI pool</span></li>
-  <li class="stat"><span class="k">VM memory</span><span class="v"><span data-live="ram_allocated_gib">{{ $l.ram_allocated_gib }}</span> / <span data-live="ram_total_gib">{{ $l.ram_total_gib }}</span> GiB</span></li>
-  <li class="stat"><span class="k">RKE2</span><span class="v" data-live="rke2_version">{{ $l.rke2_version }}</span></li>
-  <li class="stat" data-live-hide hidden><span class="k">Namespaces</span><span class="v" data-live="namespaces">&nbsp;</span></li>
-  <li class="stat"><span class="k">TrueNAS</span><span class="v">{{ $l.truenas_version }}</span></li>
-  <li class="stat"><span class="k">RouterOS</span><span class="v">{{ $l.routeros_version }}</span></li>
+  <li class="stat"><span class="k">VMs running</span><span class="v" data-live="vms_running">{{ partial "livefact.html" "vms_running" }}</span></li>
+  <li class="stat"><span class="k">K8s nodes</span><span class="v" data-live="k8s_nodes">{{ partial "livefact.html" "k8s_nodes" }}</span><span class="s">autoscaled CI nodes included</span></li>
+  <li class="stat"><span class="k">VM memory</span><span class="v"><span data-live="ram_allocated_gib">{{ partial "livefact.html" "ram_allocated_gib" }}</span> / <span data-live="ram_total_gib">{{ partial "livefact.html" "ram_total_gib" }}</span> GiB</span></li>
+  <li class="stat"><span class="k">RKE2</span><span class="v" data-live="rke2_version">{{ partial "livefact.html" "rke2_version" }}</span></li>
+  <li class="stat"><span class="k">Namespaces</span><span class="v" data-live="namespaces">{{ partial "livefact.html" "namespaces" }}</span></li>
+  <li class="stat"><span class="k">Jellyfin</span><span class="v" data-live="jellyfin_version">{{ partial "livefact.html" "jellyfin_version" }}</span></li>
+  <li class="stat"><span class="k">Velero</span><span class="v" data-live="velero_version">{{ partial "livefact.html" "velero_version" }}</span></li>
 </ul>

@@ -1,3 +1,5 @@
+{{- /* Static node count (control plane + workers) from the topology: the health threshold arch.js compares live nodes-ready against. */ -}}
+{{- $staticNodes := 0 -}}{{ range site.Data.topology.nodes }}{{ if eq .kind "k8s-control" }}{{ $staticNodes = add $staticNodes (int (.count | default 1)) }}{{ else if eq .kind "k8s-worker" }}{{ $staticNodes = add $staticNodes 1 }}{{ end }}{{ end -}}
 {{- /* Architecture map, rendered from data/topology.yaml. Layers and groups come from params.topology.
        The structure is plain HTML so it reads without JS; arch.js adds path tracing, hover details and link drawing.
        Nothing here is typed in by hand: every chip, trunk count and path step is a row of the data file. */ -}}
@@ -39,7 +41,7 @@
 {{- $hostNode := index ($sc.Get "N") $cfg.host -}}
 
 {{- $pan := and (reflect.IsMap .) .pan -}}{{- $cycle := and (reflect.IsMap .) .cycle -}}
-<div class="map" data-arch data-k8s-static="{{ site.Data.lab.k8s_nodes }}"{{ if $cycle }} data-cycle{{ end }}{{ if $pan }} data-pan{{ end }}>
+<div class="map" data-arch data-k8s-static="{{ $staticNodes }}"{{ if $cycle }} data-cycle{{ end }}{{ if $pan }} data-pan{{ end }}>
   <div class="map-top">
     <div class="map-paths" role="group" aria-label="Trace a path through the lab">
       <span class="lab">Trace a path</span>

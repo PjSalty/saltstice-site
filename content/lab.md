@@ -1,6 +1,6 @@
 ---
 title: Lab
-summary: The hardware, network and stack behind the homelab. Numbers last checked 2026-11-01.
+summary: The hardware, network and stack behind the homelab. Counts and release lines are read live from the lab.
 showReadingTime: false
 aliases: ["/uses/"]
 ---
@@ -19,34 +19,34 @@ Some detail is left out on purpose: addresses, VLAN numbers, exact patch version
 
 ## VMs
 
-{{< lab "vms_running" >}} VMs were running on the one hypervisor on 2026-11-01, with about {{< lab "ram_allocated_gib" >}} of {{< lab "ram_total_gib" >}} GiB allocated and the rest left to ZFS and headroom. That count includes the autoscaled CI nodes alive that day and a few test guests. Every VM runs Debian 13, gets built by Terraform from a cloud-init template and configured by Ansible after first boot.
+{{< lab "vms_running" >}} VMs are running on the one hypervisor right now, with about {{< lab "ram_allocated_gib" >}} of {{< lab "ram_total_gib" >}} GiB allocated and the rest left to ZFS and headroom. That count includes whatever autoscaled CI nodes are alive and a few test guests. Every VM runs Debian 13, gets built by Terraform from a cloud-init template and configured by Ansible after first boot.
 
-| VM | vCPU / RAM / Disk | Role |
-|---|---|---|
-| `truenas` | 4 / 32 GiB / 128 GiB, plus the passed-through disks | TrueNAS SCALE: iSCSI, NFS and the backup datasets |
-| Git forge | 6 / 12 / 100 | Self-hosted Git hosting and CI engine |
-| `harbor` | 4 / 8 / 250 | Container registry and pull-through cache |
-| `netbox` | 2 / 4 / 50 | IP and device records |
-| `adguard`, `adguard-2` | 2 / 2 / 32 each | Internal DNS pair with split horizon and ad blocking |
-| `unifi-os` | 4 / 8 / 64 | Wi-Fi and switch controller |
-| `haproxy-1`, `haproxy-2` | 2 / 2 / 32 each | Kubernetes API load balancer pair behind a keepalived VIP |
-| `ci-runner` | 4 / 8 / 50 | CI runner for jobs that deploy to VMs |
-| `k8s-master-1..3` | 4 / 10 / 100 each | RKE2 control plane and etcd, no application pods |
-| `k8s-worker-1` | 8 / 32 / 150 | GPU worker |
-| `k8s-worker-2`, `k8s-worker-3` | 4 / 16 / 150 to 200 each | General workers |
-| `ci-pool-*` | 2 / 8 / 54 each | Karpenter CI nodes, created on demand and gone when idle |
+| VM | Role |
+|---|---|
+| `truenas` | TrueNAS SCALE: iSCSI, NFS and the backup datasets |
+| Git forge | Self-hosted Git hosting and CI engine |
+| `harbor` | Container registry and pull-through cache |
+| `netbox` | IP and device records |
+| `adguard`, `adguard-2` | Internal DNS pair with split horizon and ad blocking |
+| `unifi-os` | Wi-Fi and switch controller |
+| `haproxy-1`, `haproxy-2` | Kubernetes API load balancer pair behind a keepalived VIP |
+| `ci-runner` | CI runner for jobs that deploy to VMs |
+| `k8s-master-1..3` | RKE2 control plane and etcd, no application pods |
+| `k8s-worker-1` | GPU worker |
+| `k8s-worker-2`, `k8s-worker-3` | General workers |
+| `ci-pool-*` | Karpenter CI nodes, created on demand and gone when idle |
 
 A small fleet of test VMs comes and goes for provider development, and the old VMs that are parked stay out of this table.
 
 ## Storage
 
-- **NAS**: TrueNAS SCALE {{< lab "truenas_version" >}} in a VM with its disk controller passed through. Pool `tank` is one 12-disk RAIDZ2 vdev. Each workload gets its own datasets: database volumes on iSCSI, media on NFS, backups on their own datasets.
+- **NAS**: TrueNAS SCALE in a VM with its disk controller passed through. Pool `tank` is one 12-disk RAIDZ2 vdev. Each workload gets its own datasets: database volumes on iSCSI, media on NFS, backups on their own datasets.
 - **Kubernetes storage**: truenas-csi {{< lab "truenas_csi_version" >}}, the official iX driver. `truenas-iscsi` is block storage for anything that needs real fsync (Postgres lives here, see [postgres on iSCSI]({{< relref "/posts/iscsi-block-storage-for-postgres.md" >}})). `nfs-client` is shared file storage for everything else.
 - **Backup**: three layers. Velero with the Kopia uploader backs up cluster state and volumes to an in-cluster SeaweedFS S3 store. Proxmox vzdump backs up whole VMs to TrueNAS over NFS. A nightly dump covers Jellyfin's Postgres database on its own.
 
 ## Network
 
-- **Router**: MikroTik RB4011, RouterOS {{< lab "routeros_version" >}}. Main firewall, routing between segments, and the BGP peer for the cluster's load-balancer addresses.
+- **Router**: MikroTik RB4011 on RouterOS. Main firewall, routing between segments, and the BGP peer for the cluster's load-balancer addresses.
 - **Switches**: MikroTik CRS317 for 10G SFP+ aggregation and CRS328 for PoE access.
 - **Wi-Fi**: UniFi access points, managed by the controller VM.
 - **Kubernetes API**: the HAProxy pair with a keepalived VIP.
@@ -92,4 +92,4 @@ Arch Linux, zsh with starship, Kitty, Neovim, and the usual CLI set (eza, bat, r
 
 ## This site
 
-Hugo with a theme of my own: Geist type, self-hosted, no third-party requests and a strict CSP. The live charts read a small read-only API that serves five aggregate numbers and nothing else. Hosted on GitHub Pages with Cloudflare in front.
+Hugo with a theme of my own: Geist type, self-hosted, no third-party requests and a strict CSP. The live charts and every number on this site read a small read-only API that serves a short list of aggregate counts and release lines, and nothing else. Hosted on GitHub Pages with Cloudflare in front.

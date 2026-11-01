@@ -7,8 +7,8 @@ types: ["incident"]
 topics: ["Cilium", "Networking"]
 ---
 
-A pod connects to `kubernetes.default.svc.cluster.local`, which resolves to the
-ClusterIP `10.43.0.1:443`. My egress rule allows `:6443`, where the API server
+A pod connects to the in-cluster API service name, which resolves to the
+ClusterIP `<api-clusterip>:443`. My egress rule allows `:6443`, where the API server
 actually listens but I was running into an issue where Cilium was dropping the packet.
 
 Policy evaluation happens at packet egress. The destination port at that moment

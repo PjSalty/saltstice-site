@@ -7,7 +7,8 @@
   if (!ep) return;
   var Q = {
     vms_running: ['public:vms_running:count', 'n'], k8s_nodes: ['public:k8s_nodes:count', 'n'], namespaces: ['public:namespaces:count', 'n'],
-    ram_allocated_gib: ['public:vm_memory_allocated:bytes', 'gib'], ram_total_gib: ['public:host_memory:bytes', 'gib'], rke2_version: ['public:kubernetes_version:info', 'line']
+    ram_allocated_gib: ['public:vm_memory_allocated:bytes', 'gib'], ram_total_gib: ['public:host_memory:bytes', 'gib'], rke2_version: ['public:kubernetes_version:info', 'line'],
+    jellyfin_version: ['public:jellyfin_version:info', 'line'], velero_version: ['public:velero_version:info', 'line'], truenas_csi_version: ['public:truenas_csi_version:info', 'line']
   };
   var cache = {};
   function get(name) {

@@ -28,7 +28,7 @@ I used this instead:
 node-role.kubernetes.io/control-plane:NoSchedule
 ```
 
-`NoExecute` evicts everything that doesn't tolerate it immediately. Here that meant all 38 apps plus node-exporter, the MetalLB speaker, the canary, the Velero node agent, and Karpenter, whose nodeSelector would have left it Pending. And Velero 1.18.2 copies a `CriticalAddonsOnly` toleration onto every data-mover pod it creates, which would have put backup work back on the masters.
+`NoExecute` evicts everything that doesn't tolerate it immediately. Here that meant all 38 apps plus node-exporter, the MetalLB speaker, the canary, the Velero node agent, and Karpenter, whose nodeSelector would have left it Pending. And Velero 1.18 copies a `CriticalAddonsOnly` toleration onto every data-mover pod it creates, which would have put backup work back on the masters.
 
 `NoSchedule` stops new placement and lets the drain during a rolling restart do the moving politely.
 
