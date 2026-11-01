@@ -191,7 +191,7 @@ paths:
     audience: public
     description: A dedicated WAN port is forwarded to the Traefik VIP on its own entrypoint (jellyfin-wan), with a per-source connection cap on the router.
     hops:
-      - {node: wan-client, note: "App connects to jellyfin.saltstice.com"}
+      - {node: wan-client, note: "The Jellyfin app on a phone or TV, away from home"}
       - {node: rb4011, via_link: l-wan-rb, note: "TCP port forward + new-connection limit"}
       - {node: traefik, via_link: l-rb-traefik, note: "Entrypoint jellyfin-wan, TLS terminated"}
       - {node: jellyfin, via_link: l-traefik-jf, note: "HTTP to Jellyfin pods"}
