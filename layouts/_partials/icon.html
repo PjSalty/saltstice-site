@@ -1,0 +1,17 @@
+{{- /* Small monochrome glyph for a node kind. Pass the kind. */ -}}
+{{- $g := "box" -}}
+{{- if in (slice "client" "cloudflare" "external" "github" "isp") . }}{{ $g = "globe" }}
+{{- else if in (slice "router" "switch" "ap" "lb" "ingress" "vpn") . }}{{ $g = "net" }}
+{{- else if in (slice "vm" "registry" "dns" "ci" "host" "ups") . }}{{ $g = "server" }}
+{{- else if or (hasPrefix . "k8s") (eq . "gitops") }}{{ $g = "cube" }}
+{{- else if in (slice "database" "cache" "storage" "backup") . }}{{ $g = "db" }}
+{{- else if eq . "observability" }}{{ $g = "eye" }}{{ end -}}
+<svg class="ic" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+{{- if eq $g "globe" }}<circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c2 2 2 10 0 12M8 2c-2 2-2 10 0 12"/>
+{{- else if eq $g "net" }}<rect x="2" y="9" width="12" height="4" rx="1"/><path d="M5 11h.01M8 9V5M5.5 6.5a3.5 3.5 0 0 1 5 0"/>
+{{- else if eq $g "server" }}<rect x="2" y="2.5" width="12" height="4.5" rx="1"/><rect x="2" y="9" width="12" height="4.5" rx="1"/><path d="M4.5 4.75h.01M4.5 11.25h.01"/>
+{{- else if eq $g "cube" }}<path d="M8 2l5.5 3v6L8 14 2.5 11V5z M2.5 5L8 8l5.5-3M8 8v6"/>
+{{- else if eq $g "db" }}<ellipse cx="8" cy="4" rx="5" ry="2"/><path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
+{{- else if eq $g "eye" }}<path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/>
+{{- else }}<rect x="3" y="3" width="10" height="10" rx="2"/><path d="M6 8h4"/>{{ end }}
+</svg>

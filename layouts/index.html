@@ -1,23 +1,21 @@
 {{- define "main" }}
 {{- $h := site.Params.hero }}
-{{- $first := index (findRE `(?s)<p>.*?</p>` .Content 1) 0 }}
 <section class="hero">
-  <div class="wrap hero-grid">
+  <div class="wrap">
     <div class="hero-copy">
       <p class="eyebrow"><span class="dot" aria-hidden="true"></span>{{ $h.eyebrow }}</p>
       <h1>{{ $h.title }}</h1>
-      <div class="lead">{{ $first | safeHTML }}</div>
-      <p class="cta"><a class="btn btn-primary" href="/projects/">See what I shipped</a><a class="btn btn-ghost" href="/incidents/">Read the postmortems</a></p>
+      <p class="lead">{{ $h.lead }}</p>
+      <p class="cta"><a class="btn btn-primary" href="/lab/">Explore the lab</a><a class="btn" href="/incidents/">Read the postmortems</a></p>
     </div>
-    <figure class="hero-art">{{ if site.Data.topology }}{{ partial "topology-hero.html" . }}{{ else }}{{ partial "schematic.html" . }}{{ end }}</figure>
   </div>
 </section>
 
-<div class="wrap live-strip">{{ partial "telemetry.html" "strip" }}</div>
-
-<section class="band" aria-labelledby="h-proof">
+<section class="band" aria-labelledby="h-live">
   <div class="wrap">
-    <div class="sec-head"><h2 id="h-proof"><span class="idx">01</span>The lab</h2><a href="/lab/">Architecture and stack</a></div>
+    <div class="sec-head"><div><h2 id="h-live"><span class="idx">01</span>The lab, live</h2><p class="sec-sub">Pick a path and watch a request cross the real topology. Numbers below are read from the cluster.</p></div><a href="/lab/">Open the full map</a></div>
+    {{ if site.Data.topology }}{{ partial "topology.html" (dict "cycle" true) }}{{ end }}
+    <div class="map-block">{{ partial "telemetry.html" "full" }}</div>
     {{ partial "stats.html" . }}
   </div>
 </section>
@@ -34,31 +32,9 @@
   </div>
 </section>
 
-<section class="band" aria-labelledby="h-inc">
-  <div class="wrap">
-    <div class="sec-head"><h2 id="h-inc"><span class="idx">03</span>Postmortems</h2><a href="/incidents/">All {{ len (where site.RegularPages "Section" "incidents") }}</a></div>
-    <div class="inc-head">
-      <p class="lead">What broke, why, and what changed. Wrong calls stay in.</p>
-      {{ partial "density.html" . }}
-    </div>
-    <ul class="irows">
-      {{- range first 5 (where site.RegularPages "Section" "incidents").ByDate.Reverse }}{{ partial "irow.html" . }}{{ end }}
-    </ul>
-  </div>
-</section>
-
-<section class="band" aria-labelledby="h-start">
-  <div class="wrap">
-    <div class="sec-head"><h2 id="h-start"><span class="idx">04</span>Start here</h2><a href="/start-here/">Reading list</a></div>
-    <ol class="steps">
-      {{- range $i, $p := first 6 (.Params.featured | default slice) }}{{ with site.GetPage $p }}{{ partial "step.html" (dict "page" . "n" (add $i 1)) }}{{ end }}{{ end }}
-    </ol>
-  </div>
-</section>
-
 <section class="band" aria-labelledby="h-new">
   <div class="wrap">
-    <div class="sec-head"><h2 id="h-new"><span class="idx">05</span>Latest</h2><a href="/writing/">All {{ len (where site.RegularPages "Section" "in" (slice "posts" "incidents")) }} entries</a></div>
+    <div class="sec-head"><h2 id="h-new"><span class="idx">03</span>Writing</h2><a href="/writing/">All {{ len (where site.RegularPages "Section" "in" (slice "posts" "incidents")) }} entries</a></div>
     <div class="feed">
       {{- range first 3 ((where site.RegularPages "Section" "in" (slice "posts" "incidents")).GroupByDate "January 2006") }}
       <h3 class="feed-m">{{ .Key }}</h3>
@@ -68,11 +44,16 @@
   </div>
 </section>
 
-<section class="band band-contact" aria-labelledby="h-reach">
-  <div class="wrap reach">
-    <h2 id="h-reach">Get in touch</h2>
-    <p>The code is on GitHub and the providers are on the Terraform Registry. Security reports go through the advisory form in <a href="/.well-known/security.txt">security.txt</a>.</p>
-    <p class="cta"><a class="btn btn-primary" href="https://github.com/PjSalty" rel="noopener">GitHub profile</a><a class="btn" href="/about/">About</a><a class="btn btn-ghost" href="/index.xml">RSS</a></p>
+<section class="band" aria-labelledby="h-inc">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="h-inc"><span class="idx">04</span>Postmortems</h2><a href="/incidents/">All {{ len (where site.RegularPages "Section" "incidents") }}</a></div>
+    <div class="inc-head">
+      <p class="lead">What broke, why, and what changed. Wrong calls stay in.</p>
+      {{ partial "density.html" . }}
+    </div>
+    <ul class="irows">
+      {{- range first 5 (where site.RegularPages "Section" "incidents").ByDate.Reverse }}{{ partial "irow.html" . }}{{ end }}
+    </ul>
   </div>
 </section>
 {{- end }}

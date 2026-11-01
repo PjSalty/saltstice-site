@@ -38,11 +38,12 @@
 {{- range $T.links }}{{ if not (in $kinds .kind) }}{{ $kinds = $kinds | append .kind }}{{ end }}{{ end -}}
 {{- $hostNode := index ($sc.Get "N") $cfg.host -}}
 
-<div class="map" data-arch>
+{{- $pan := and (reflect.IsMap .) .pan -}}{{- $cycle := and (reflect.IsMap .) .cycle -}}
+<div class="map" data-arch data-k8s-static="{{ site.Data.lab.k8s_nodes }}"{{ if $cycle }} data-cycle{{ end }}{{ if $pan }} data-pan{{ end }}>
   <div class="map-top">
     <div class="map-paths" role="group" aria-label="Trace a path through the lab">
       <span class="lab">Trace a path</span>
-      {{- range $T.paths }}<button type="button" class="seg path-btn" data-path="{{ .id }}" aria-pressed="false">{{ .label }}</button>{{ end }}
+      {{- range $T.paths }}<button type="button" class="seg path-btn" data-path="{{ .id }}" data-aud="{{ .audience }}" aria-pressed="false">{{ .label }}</button>{{ end }}
     </div>
     <div class="map-tools">
       <label class="tog"><input type="checkbox" data-show-links><span>Show all links</span></label>
@@ -54,7 +55,10 @@
   </div>
 
   <div class="map-main">
+    <div class="map-view">
+    {{- if $pan }}<div class="map-zoom" role="group" aria-label="Zoom"><button type="button" class="zb" data-zoom="in" aria-label="Zoom in">+</button><button type="button" class="zb" data-zoom="out" aria-label="Zoom out">-</button><button type="button" class="zb zr" data-zoom="reset">Reset</button><span class="zh">ctrl + scroll to zoom, drag to pan</span></div>{{ end }}
     <div class="map-canvas">
+      <canvas class="map-fx" aria-hidden="true"></canvas>
       <svg class="map-links" aria-hidden="true" focusable="false"><g class="all"></g><g class="route"></g><g class="packets"></g></svg>
       {{- range $li, $L := $cfg.layers }}
       {{- $mem := $sc.Get (printf "m-%s" $L.id) | default slice }}
@@ -90,6 +94,7 @@
       {{- end }}
       {{- end }}
       {{- end }}
+    </div>
     </div>
 
     <aside class="map-side" aria-label="Path steps and details">

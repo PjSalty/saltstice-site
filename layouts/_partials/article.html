@@ -18,7 +18,6 @@
       <div><dt>Path</dt><dd><ol class="path"><li><a href="#main">Symptom</a></li>{{ with $root }}<li><a href="#{{ . }}">Cause</a></li>{{ end }}{{ with $fix }}<li><a href="#{{ . }}">Fix</a></li>{{ end }}</ol></dd></div>
     </dl>
     {{- else }}
-    <div class="art-cover">{{ partial "cover.html" . }}</div>
     {{- end }}
   </header>
   <div class="wrap art-grid">
@@ -46,7 +45,7 @@
     {{- if $rel }}
     <section class="related" aria-labelledby="h-rel">
       <div class="sec-head"><h2 id="h-rel">Read next</h2></div>
-      <ul class="pcards">{{ range $rel }}{{ partial "pcard.html" . }}{{ end }}</ul>
+      <ul class="lines">{{ range $rel }}{{ partial "pcard.html" . }}{{ end }}</ul>
     </section>
     {{- end }}
   </footer>

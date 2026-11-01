@@ -6,19 +6,15 @@
   {{- with .Params.summary }}<p class="lede">{{ . }}</p>{{ end }}
   </header>
 
-<div class="wrap lab-stats">{{ partial "stats.html" . }}</div>
-<section class="wrap lab-tele" id="telemetry" aria-labelledby="h-tele">
-  <div class="sec-head"><h2 id="h-tele"><span class="idx">LIVE</span>Telemetry</h2></div>
+<section class="wrap lab-arch band-tight" aria-labelledby="h-arch">
+  <div class="sec-head"><h2 id="h-arch">Architecture</h2></div>
+  {{ partial "topology.html" (dict "pan" true) }}
+</section>
+<section class="wrap band lab-tele" id="telemetry" aria-labelledby="h-tele">
+  <div class="sec-head"><h2 id="h-tele">Live telemetry</h2></div>
   {{ partial "telemetry.html" "full" }}
+  {{ partial "stats.html" . }}
 </section>
-{{- if site.Data.topology }}
-<section class="wrap wrap-wide lab-arch" aria-labelledby="h-arch">
-  <div class="sec-head"><h2 id="h-arch"><span class="idx">MAP</span>Architecture</h2></div>
-  {{ partial "topology.html" (dict "mode" "full") }}
-</section>
-{{- else }}
-<div class="wrap"><div class="lab-art">{{ partial "schematic.html" . }}</div></div>
-{{- end }}
 {{- else if eq .File.Path "telemetry.md" }}
 <header class="wrap page-head">
   {{- partial "crumbs.html" . }}
@@ -43,7 +39,7 @@
 </div>
 {{- end }}
 {{- if eq .File.Path "about.md" }}
-<div class="wrap band-contact reach-wrap">
+<div class="wrap reach-wrap">
   <div class="reach">
     <h2>Get in touch</h2>
     <p>The code is on GitHub and the providers are on the Terraform Registry. Security reports go through the advisory form in <a href="/.well-known/security.txt">security.txt</a>.</p>

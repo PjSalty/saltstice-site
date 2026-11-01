@@ -1,12 +1,11 @@
 .chroma{color:var(--prose)}
-.chroma .k,.chroma .kd,.chroma .kn,.chroma .kp,.chroma .kr,.chroma .ow,.chroma .nt{color:var(--syn-kw)}
+.chroma .k,.chroma .kd,.chroma .kn,.chroma .kp,.chroma .kr,.chroma .ow,.chroma .nt{color:var(--syn-kw);font-weight:600}
 .chroma .kt,.chroma .nc,.chroma .nn,.chroma .ne{color:var(--syn-ty)}
 .chroma .s,.chroma .sa,.chroma .sb,.chroma .sc,.chroma .dl,.chroma .sd,.chroma .s2,.chroma .se,.chroma .sh,.chroma .si,.chroma .sx,.chroma .sr,.chroma .s1,.chroma .ss{color:var(--syn-str)}
 .chroma .m,.chroma .mb,.chroma .mf,.chroma .mh,.chroma .mi,.chroma .il,.chroma .mo,.chroma .l,.chroma .ld,.chroma .no,.chroma .bp{color:var(--syn-num)}
 .chroma .c,.chroma .ch,.chroma .cm,.chroma .c1,.chroma .cs,.chroma .cp,.chroma .cpf{color:var(--syn-com);font-style:italic}
 .chroma .nf,.chroma .fm,.chroma .nb,.chroma .na,.chroma .nd{color:var(--syn-fn)}
 .chroma .o,.chroma .p{color:var(--fg2)}
-.chroma .gd{color:var(--crit)}.chroma .gi{color:var(--ok)}.chroma .gh,.chroma .gu{color:var(--fg);font-weight:700}
-.chroma .ge{font-style:italic}.chroma .gs{font-weight:700}
+.chroma .gd{color:var(--crit)}.chroma .gi{color:var(--live)}.chroma .gh,.chroma .gu{color:var(--fg);font-weight:700}
 .chroma .err{color:var(--crit)}
-.chroma .hl{display:block;background:color-mix(in srgb,var(--acc) 12%,transparent)}
+.chroma .hl{display:block;background:color-mix(in srgb,var(--fg) 8%,transparent)}

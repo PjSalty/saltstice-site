@@ -6,9 +6,11 @@
 <body class="pg-{{ .Kind }}{{ with .Section }} sec-{{ . }}{{ end }}">
 <a class="skip" href="#main">Skip to content</a>
 {{- partial "header.html" . }}
+<div class="frame">
 <main id="main" tabindex="-1">
 {{- block "main" . }}{{ end }}
 </main>
+</div>
 {{- partial "footer.html" . }}
 {{- $app := resources.Get "js/app.js" | minify | fingerprint }}
 <script src="{{ $app.RelPermalink }}" integrity="{{ $app.Data.Integrity }}" defer></script>
@@ -16,7 +18,7 @@
 {{- $tj := resources.Get "js/telemetry.js" | minify | fingerprint }}
 <script src="{{ $tj.RelPermalink }}" integrity="{{ $tj.Data.Integrity }}" defer></script>
 {{- end }}
-{{- if and (eq .RelPermalink "/lab/") site.Data.topology }}
+{{- if and (or .IsHome (eq .RelPermalink "/lab/")) site.Data.topology }}
 {{- $aj := resources.Get "js/arch.js" | minify | fingerprint }}
 <script src="{{ $aj.RelPermalink }}" integrity="{{ $aj.Data.Integrity }}" defer></script>
 {{- end }}

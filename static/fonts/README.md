@@ -6,7 +6,7 @@ Self-hosted, no third-party requests. All three are from the Geist family by Ver
 |---|---|---|
 | Geist-Variable.woff2 | Geist (sans), `Geist[wght].ttf` | variable weight, body and UI |
 | GeistMono-Variable.woff2 | Geist Mono, `GeistMono[wght].ttf` | variable weight, code, labels and data |
-| GeistSerif-Regular.woff2 | Geist Serif Regular | display headings only |
+| GeistSerif-Regular.woff2 | 
 
 - Version: geist-font v1.9.0 (released 2026-10-30)
 - Source: https://github.com/vercel/geist-font/releases/tag/v1.9.0

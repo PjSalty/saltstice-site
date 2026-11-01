@@ -1,10 +1,8 @@
-{{- /* Writing index row with cover. Pass the page. */ -}}
+{{- /* Writing index row. Pass the page. */ -}}
 {{- $t := partial "ptype.html" . -}}
 <li class="row" data-type="{{ $t }}">
-  <a class="row-cover" href="{{ .RelPermalink }}" tabindex="-1" aria-hidden="true">{{ partial "cover.html" . }}</a>
-  <div class="row-body">
-    <p class="meta">{{ partial "chip.html" $t }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>{{ with .Params.topics }}<span class="topics">{{ delimit (first 2 .) ", " }}</span>{{ end }}</p>
-    <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
-    {{- with .Params.summary | default .Summary }}<p class="sum">{{ . | plainify | truncate 190 }}</p>{{ end }}
-  </div>
+  <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+  <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+  <p class="meta">{{ with .Params.topics }}<span class="topics">{{ delimit (first 2 .) ", " }}</span>{{ end }}{{ partial "chip.html" $t }}</p>
+  {{- with .Params.summary | default .Summary }}<p class="sum">{{ . | plainify | truncate 170 }}</p>{{ end }}
 </li>
