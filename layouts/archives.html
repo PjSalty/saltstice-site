@@ -1,0 +1,13 @@
+{{- define "main" }}
+<header class="page-head">
+  <h1>{{ .Title }}</h1>
+  {{- with .Params.summary }}<p class="lede">{{ . }}</p>{{ end }}
+</header>
+{{- $pages := where site.RegularPages "Section" "in" (slice "posts" "incidents") }}
+{{- range $pages.GroupByDate "2006" }}
+<h2 class="archive-year">{{ .Key }}</h2>
+<ul class="entries">
+  {{- range sort .Pages "Date" "desc" }}{{ partial "entry.html" . }}{{ end }}
+</ul>
+{{- end }}
+{{- end }}

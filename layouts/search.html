@@ -1,0 +1,17 @@
+{{- define "main" }}
+<header class="page-head">
+  <h1>{{ .Title }}</h1>
+  <p class="lede">Searches titles, tags and full text in your browser.</p>
+</header>
+<form role="search" action="/search/" method="get" id="search-form">
+  <label for="q" class="visually-hidden">Search</label>
+  <input class="search-box" id="q" name="q" type="search" autocomplete="off" maxlength="80" placeholder="{{ .Params.placeholder | default "Search" }}" data-index="{{ "index.json" | relURL }}">
+</form>
+<p class="search-status" id="search-status" role="status" aria-live="polite"></p>
+<ul class="results" id="results"></ul>
+<noscript><p>Search needs JavaScript. The <a href="/archives/">archive</a> lists everything.</p></noscript>
+{{- end }}
+{{- define "scripts" }}
+{{- $s := resources.Get "js/search.js" | minify | fingerprint }}
+<script src="{{ $s.RelPermalink }}" integrity="{{ $s.Data.Integrity }}" defer></script>
+{{- end }}

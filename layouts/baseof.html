@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{{- partial "head.html" . }}
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+{{- partial "header.html" . }}
+<main id="main" tabindex="-1">
+  <div class="wrap">
+{{- block "main" . }}{{ end }}
+  </div>
+</main>
+{{- partial "footer.html" . }}
+{{- $app := resources.Get "js/app.js" | minify | fingerprint }}
+<script src="{{ $app.RelPermalink }}" integrity="{{ $app.Data.Integrity }}" defer></script>
+{{- block "scripts" . }}{{ end }}
+</body>
+</html>

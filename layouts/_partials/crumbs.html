@@ -1,0 +1,4 @@
+<nav class="crumbs" aria-label="Breadcrumb">
+  <a href="/">home</a>
+  {{- if and .IsPage (ne .Section "") }}{{ with site.GetPage (printf "/%s" .Section) }}<span aria-hidden="true">/</span><a href="{{ if eq .Section "posts" }}/writing/{{ else }}{{ .RelPermalink }}{{ end }}">{{ if eq .Section "posts" }}writing{{ else }}{{ .Section }}{{ end }}</a>{{ end }}{{ end }}
+</nav>

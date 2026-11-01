@@ -1,8 +1,6 @@
 baseURL: https://saltstice.com/
 title: Salty
 languageCode: en-us
-theme: PaperMod
-
 enableEmoji: true
 enableRobotsTXT: true
 buildDrafts: false
@@ -39,7 +37,7 @@ markup:
       unsafe: true
   highlight:
     noClasses: false
-    style: catppuccin-mocha
+    style: github
     codeFences: true
     lineNos: false
 
@@ -47,83 +45,13 @@ params:
   env: production
   description: Platform engineer. Notes on running a production homelab as code.
   author: Salty
-  assets:
-    favicon: /favicon.svg
-    apple_touch_icon: /favicon.svg
-  defaultTheme: dark
-  disableThemeToggle: false
-
-  ShowShareButtons: false
-  ShowReadingTime: true
-  ShowWordCount: false
-  hideAuthor: true
-  ShowPostNavLinks: true
-  ShowBreadCrumbs: true
-  ShowCodeCopyButtons: true
-  ShowTaxonomies: true
-  ShowToc: true
-  TocOpen: false
-  ShowRssButtonInSectionTermList: true
-
-  editPost:
-    URL: "https://github.com/PjSalty/saltstice-site/edit/main/content"
-    Text: "Edit on GitHub"
-    appendFilePath: true
-
-  homeInfoParams:
-    Title: ""
-    Content: |
-      Platform engineer. I run a homelab on one used Dell R740xd: Proxmox, a 6-node RKE2 cluster, Cilium, Flux, Terraform, Ansible, SOPS, Velero, TrueNAS. All of it as code.
-
-      The [writing](/writing/) is builds, runbooks, and postmortems. [Lab](/lab/) is the hardware and stack, and [Telemetry](/telemetry/) is its live state. The repo is [saltstice-homelab](https://github.com/PjSalty/saltstice-homelab), and there's a [TrueNAS Terraform provider](https://registry.terraform.io/providers/PjSalty/truenas/latest) on the registry.
-
-  socialIcons:
-    - name: github
-      url: "https://github.com/PjSalty"
-    - name: rss
-      url: "/index.xml"
-
-  cover:
-    hidden: true
-    hiddenInList: true
-    hiddenInSingle: true
-
-  fuseOpts:
-    isCaseSensitive: false
-    shouldSort: true
-    location: 0
-    distance: 1000
-    threshold: 0.4
-    minMatchCharLength: 0
-    keys: ["title", "permalink", "summary", "content"]
 
 menu:
   main:
-    - identifier: writing
-      name: Writing
-      url: /writing/
-      weight: 10
-    - identifier: topics
-      name: Topics
-      url: /topics/
-      weight: 20
-    - identifier: lab
-      name: Lab
-      url: /lab/
-      weight: 30
-    - identifier: projects
-      name: Projects
-      url: /projects/
-      weight: 40
-    - identifier: about
-      name: About
-      url: /about/
-      weight: 50
-    - identifier: telemetry
-      name: Telemetry
-      url: /telemetry/
-      weight: 60
-    - identifier: search
-      name: Search
-      url: /search/
-      weight: 70
+    - {identifier: writing, name: Writing, url: /writing/, weight: 10}
+    - {identifier: incidents, name: Incidents, url: /incidents/, weight: 20}
+    - {identifier: projects, name: Projects, url: /projects/, weight: 30}
+    - {identifier: lab, name: Lab, url: /lab/, weight: 40}
+    - {identifier: telemetry, name: Telemetry, url: /telemetry/, weight: 50}
+    - {identifier: about, name: About, url: /about/, weight: 60}
+    - {identifier: search, name: Search, url: /search/, weight: 70}

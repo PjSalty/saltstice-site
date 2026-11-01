@@ -1,45 +1,38 @@
 {{- define "main" }}
-<article class="post-single">
-  <header class="post-header">
-    {{ partial "breadcrumbs.html" . }}
-    {{- $t := "" }}{{ with .Params.types }}{{ $t = index . 0 }}{{ end }}
-    {{- with $t }}<div class="post-type"><span class="badge badge-{{ . }}">{{ . }}</span></div>{{ end }}
-    <h1 class="post-title">{{ .Title }}</h1>
-    {{- if .Description }}
-    <div class="post-description">{{ .Description }}</div>
-    {{- end }}
-    {{- if not (.Param "hideMeta") }}
+<article>
+  <header class="post-head">
+    {{- partial "crumbs.html" . }}
+    <h1>{{ .Title }}</h1>
+    {{- with .Params.summary | default .Description }}{{ if $.IsPage }}{{ if or (eq $.Section "posts") (eq $.Section "incidents") (eq $.Section "projects") }}<p class="lede">{{ . }}</p>{{ end }}{{ end }}{{ end }}
     <div class="post-meta">
-      {{- partial "post_meta.html" . -}}
-      {{- partial "edit_post.html" . -}}
+      {{- $t := "" }}{{ with .Params.types }}{{ $t = index . 0 }}{{ else }}{{ if eq .Section "incidents" }}{{ $t = "incident" }}{{ end }}{{ end }}
+      {{- with $t }}<span class="tag-type tag-{{ . }}">{{ . }}</span>{{ end }}
+      {{- if not .Date.IsZero }}{{ if or (eq .Section "posts") (eq .Section "incidents") }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}{{ end }}
+      {{- if and (ne .Params.showReadingTime false) (or (eq .Section "posts") (eq .Section "incidents") (eq .Section "projects")) }}<span>{{ .ReadingTime }} min read</span>{{ end }}
+      {{- if .File }}<a href="https://github.com/PjSalty/saltstice-site/edit/main/content/{{ .File.Path }}" rel="noopener">Edit on GitHub</a>{{ end }}
     </div>
-    {{- end }}
   </header>
-
-  {{- if (.Param "ShowToc") }}
-  {{- partial "toc.html" . }}
+  {{- if and (ne .Params.showToc false) (gt (len .TableOfContents) 80) (or (eq .Section "posts") (eq .Section "incidents") (eq .Section "projects")) }}
+  <details class="toc">
+    <summary>Contents</summary>
+    <nav aria-label="Table of contents">{{ .TableOfContents }}</nav>
+  </details>
   {{- end }}
-
-  {{- if .Content }}
-  <div class="post-content md-content">
-    {{- if not (.Param "disableAnchoredHeadings") }}
-    {{- partial "anchored_headings.html" .Content -}}
-    {{- else }}{{ .Content }}{{ end }}
-  </div>
-  {{- end }}
-
-  {{- partial "extend_post_content.html" . }}
-
-  <footer class="post-footer">
-    {{- $tags := .Language.Params.Taxonomies.tag | default "tags" }}
-    <ul class="post-tags">
-      {{- range ($.GetTerms $tags) }}
-      <li><a href="{{ .Permalink }}">{{ .LinkTitle }}</a></li>
-      {{- end }}
+  <div class="prose">{{ .Content }}</div>
+  <footer class="post-foot">
+    {{- $terms := slice }}
+    {{- range $tax := slice "topics" "tags" }}{{ range ($.GetTerms $tax) }}{{ $terms = $terms | append . }}{{ end }}{{ end }}
+    {{- if $terms }}
+    <ul class="pills" aria-label="Topics and tags">
+      {{- range $terms }}<li><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a></li>{{ end }}
     </ul>
-    {{- if (.Param "ShowPostNavLinks") }}
-    {{- partial "post_nav_links.html" . }}
+    {{- end }}
+    {{- if or (eq .Section "posts") (eq .Section "incidents") }}
+    <nav class="prevnext" aria-label="More writing">
+      {{- with .PrevInSection }}<a class="prev" href="{{ .RelPermalink }}" rel="prev"><small>Newer</small>{{ .Title }}</a>{{ end }}
+      {{- with .NextInSection }}<a class="next" href="{{ .RelPermalink }}" rel="next"><small>Older</small>{{ .Title }}</a>{{ end }}
+    </nav>
     {{- end }}
   </footer>
 </article>
-{{- end }}{{/* end main */}}
+{{- end }}

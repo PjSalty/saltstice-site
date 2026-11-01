@@ -1,0 +1,5 @@
+<li class="card">
+  <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+  {{- with .Params.summary | default .Summary }}<p>{{ . | plainify | truncate 150 }}</p>{{ end }}
+  {{- with .Params.tags }}<span class="meta">{{ delimit (first 4 .) " · " }}</span>{{ end }}
+</li>
