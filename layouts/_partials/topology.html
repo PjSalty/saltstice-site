@@ -47,10 +47,10 @@
     </div>
     <div class="map-tools">
       <label class="tog"><input type="checkbox" data-show-links><span>Show all links</span></label>
-      <ul class="map-legend" aria-label="Link kinds">
+      <details class="legend-d"><summary>Legend</summary><ul class="map-legend" aria-label="Link kinds">
         {{- range sort $kinds }}<li><i class="tk tk-{{ . }}" aria-hidden="true"></i>{{ . }}</li>{{ end }}
         <li><i class="tk tk-unv" aria-hidden="true"></i>unverified</li>
-      </ul>
+      </ul></details>
     </div>
   </div>
 

@@ -18,7 +18,9 @@
 {{- $tj := resources.Get "js/telemetry.js" | minify | fingerprint }}
 <script src="{{ $tj.RelPermalink }}" integrity="{{ $tj.Data.Integrity }}" defer></script>
 {{- end }}
-{{- if and (or .IsHome (eq .RelPermalink "/lab/")) site.Data.topology }}
+{{- if .IsHome }}{{- $hj := resources.Get "js/hero.js" | minify | fingerprint }}
+<script src="{{ $hj.RelPermalink }}" integrity="{{ $hj.Data.Integrity }}" defer></script>{{ end }}
+{{- if and (eq .RelPermalink "/lab/") site.Data.topology }}
 {{- $aj := resources.Get "js/arch.js" | minify | fingerprint }}
 <script src="{{ $aj.RelPermalink }}" integrity="{{ $aj.Data.Integrity }}" defer></script>
 {{- end }}

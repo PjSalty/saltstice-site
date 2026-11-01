@@ -1,0 +1,94 @@
+{{- /* Home showpiece. Every label, count and link kind comes from data/topology.yaml; only the placement is drawn by hand.
+       hero.js adds ambient traffic, the auto-cycling beam and the live cluster readout. */ -}}
+{{- $T := site.Data.topology -}}
+{{- $cfg := site.Params.topology -}}
+{{- $N := dict -}}{{ range $T.nodes }}{{ $N = merge $N (dict .id .) }}{{ end -}}
+{{- $LK := dict -}}{{ range $T.links }}{{ $LK = merge $LK (dict .id .) }}{{ end -}}
+{{- $host := index $N $cfg.host -}}
+{{- $P := dict
+  "visitor" (dict "x" 90 "y" 512 "w" 150 "h" 38)
+  "wan-client" (dict "x" 90 "y" 592 "w" 170 "h" 38)
+  "cloudflare" (dict "x" 310 "y" 512 "w" 170 "h" 46)
+  "rb4011" (dict "x" 310 "y" 592 "w" 170 "h" 46)
+  "crs317" (dict "x" 310 "y" 656 "w" 170 "h" 36)
+  "cloudflared" (dict "x" 650 "y" 160 "w" 140 "h" 36)
+  "traefik" (dict "x" 850 "y" 106 "w" 130 "h" 36)
+  "prom-public" (dict "x" 1050 "y" 160 "w" 170 "h" 36)
+  "bgp-speaker" (dict "x" 650 "y" 272 "w" 150 "h" 36)
+  "jellyfin" (dict "x" 1070 "y" 252 "w" 130 "h" 36)
+  "jf-postgres" (dict "x" 1070 "y" 312 "w" 130 "h" 36)
+  "vm-truenas" (dict "x" 800 "y" 470 "w" 140 "h" 40)
+  "pool-tank" (dict "x" 975 "y" 470 "w" 140 "h" 40)
+  "ds-backups" (dict "x" 1112 "y" 470 "w" 130 "h" 40) -}}
+{{- $hostBox := dict "x" 600 "y" 280 "w" 1 "h" 1 -}}
+{{- $show := slice
+  (dict "id" "l-vis-cf") (dict "id" "l-cf-cloudflared") (dict "id" "l-cloudflared-traefik") (dict "id" "l-traefik-pp")
+  (dict "id" "l-wan-rb") (dict "id" "l-rb-traefik") (dict "id" "l-traefik-jf") (dict "id" "l-jf-pg") (dict "id" "l-bgp")
+  (dict "id" "l-rb-317") (dict "id" "l-pg-iscsi") (dict "id" "l-truenas-pool") (dict "id" "l-pg-backup") -}}
+{{- $masters := index $N "vm-masters" -}}{{ $pool := index $N "pool-ci" -}}
+{{- $workers := 0 -}}{{ range $T.nodes }}{{ if and (eq .kind "k8s-worker") (eq (.parent | default "") $cfg.host) }}{{ $workers = add $workers 1 }}{{ end }}{{ end -}}
+{{- $nm := int $masters.count -}}{{ $np := int $pool.count -}}{{ $ng := add (add $nm $workers) $np -}}
+<div class="hero-dia" data-hero data-endpoint="{{ site.Params.telemetry.endpoint }}" data-k8s-static="{{ site.Data.lab.k8s_nodes }}">
+  <svg class="hdia" viewBox="0 0 1200 690" role="img" aria-labelledby="hd-t hd-d" focusable="false">
+    <title id="hd-t">The lab, drawn from the topology data</title>
+    <desc id="hd-d">Visitors reach Cloudflare and the MikroTik router. A tunnel and BGP feed the Kubernetes cluster that runs on one Dell R740xd, with TrueNAS storage and backups beneath.</desc>
+    <defs>
+      <radialGradient id="hd-glow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="currentColor" stop-opacity=".45"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></radialGradient>
+      <linearGradient id="hd-frame" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".07"/><stop offset="1" stop-color="currentColor" stop-opacity=".01"/></linearGradient>
+    </defs>
+    <rect class="hd-frame" x="560" y="28" width="636" height="508" rx="18"/>
+    <text class="hd-h" x="584" y="62">{{ $host.label }}</text>
+    <text class="hd-s" x="584" y="82">{{ index $host.specs 1 }}, {{ index $host.specs 0 | replaceRE ` \(.*` "" }}</text>
+    <circle class="hd-glow" id="hd-glow" cx="850" cy="270" r="260"/>
+    <circle class="hd-ring" cx="850" cy="270" r="105"/>
+    <circle class="hd-ring hd-ring2" cx="850" cy="270" r="72"/>
+    {{- /* VLAN bands: one dot per entry in the data, stopped VMs dim */ -}}
+    {{- range $bi, $b := slice (dict "z" "z-infra" "l" "Infrastructure VLAN") (dict "z" "z-storage" "l" "Storage VLAN") (dict "z" "z-dmz" "l" "DMZ VLAN") (dict "z" "z-mgmt" "l" "Management VLAN") }}
+    {{- $y := add 318 (mul $bi 52) }}
+    <g class="hd-band"><rect x="584" y="{{ $y }}" width="140" height="42" rx="8"/><text class="hd-s" x="596" y="{{ add $y 17 }}">{{ $b.l }}</text>
+      {{- $i := 0 }}{{ range $T.nodes }}{{ if and (eq (.parent | default "") $cfg.host) (eq .zone $b.z) }}<circle class="hd-dot{{ if eq (.status | default "") "stopped" }} off{{ end }}" cx="{{ add 598 (mul (mod $i 10) 12) }}" cy="{{ add $y 31 }}" r="3.6"/>{{ $i = add $i 1 }}{{ end }}{{ end }}</g>
+    {{- end }}
+    {{- /* cluster glyphs around the ring: control plane solid, workers outline, autoscaled pool dashed */ -}}
+    {{- range seq 0 (sub $ng 1) }}
+    {{- $a := mul (sub (float .) 2.0) (div 6.2831853 (float $ng)) }}
+    {{- $cls := cond (lt . $nm) "m" (cond (lt . (add $nm $workers)) "w" "c") }}
+    <g class="hd-node {{ $cls }}" data-ready><rect x="{{ printf "%.1f" (sub (add 850 (mul 105.0 (math.Cos $a))) 13) }}" y="{{ printf "%.1f" (sub (add 270 (mul 105.0 (math.Sin $a))) 13) }}" width="26" height="26" rx="7"/><path d="M{{ printf "%.1f" (sub (add 850 (mul 105.0 (math.Cos $a))) 5) }} {{ printf "%.1f" (add 270 (mul 105.0 (math.Sin $a))) }}h10"/></g>
+    {{- end }}
+    {{- $cil := index $N "cilium" }}
+    <text class="hd-h2" x="850" y="262" text-anchor="middle">Kubernetes</text>
+    <text class="hd-s" x="850" y="282" text-anchor="middle">{{ index (split $T.kubernetes.version " ") 0 }}</text>
+    <text class="hd-s" x="850" y="300" text-anchor="middle">{{ $cil.label }}</text>
+    <text class="hd-ro" id="hd-ro" x="850" y="412" text-anchor="middle"> </text>
+
+    <g class="hd-links">
+    {{- range $show }}
+      {{- $l := index $LK .id }}{{ if $l }}
+      {{- $a := index $P $l.from }}{{ $b := index $P $l.to }}
+      {{- if and $a $b }}
+      {{- $ax := $a.x }}{{ $ay := $a.y }}{{ $bx := $b.x }}{{ $by := $b.y }}
+      {{- $dx := sub $bx $ax }}{{ $dy := sub $by $ay }}{{ $adx := cond (lt $dx 0) (sub 0 $dx) $dx }}{{ $ady := cond (lt $dy 0) (sub 0 $dy) $dy }}
+      {{- $d := "" }}
+      {{- if gt $adx (add $ady 40) }}
+        {{- $sx := cond (gt $dx 0) (add $ax (div $a.w 2)) (sub $ax (div $a.w 2)) }}{{ $ex := cond (gt $dx 0) (sub $bx (div $b.w 2)) (add $bx (div $b.w 2)) }}{{ $k := div (sub $ex $sx) 2 }}
+        {{- $d = printf "M%d %dC%d %d %d %d %d %d" $sx $ay (add $sx $k) $ay (sub $ex $k) $by $ex $by }}
+      {{- else }}
+        {{- $sy := cond (gt $dy 0) (add $ay (div $a.h 2)) (sub $ay (div $a.h 2)) }}{{ $ey := cond (gt $dy 0) (sub $by (div $b.h 2)) (add $by (div $b.h 2)) }}{{ $k := div (sub $ey $sy) 2 }}
+        {{- $d = printf "M%d %dC%d %d %d %d %d %d" $ax $sy $ax (add $sy $k) $bx (sub $ey $k) $bx $ey }}
+      {{- end }}
+      <path class="hl hl-{{ $l.kind }}" id="hd-{{ $l.id }}" d="{{ $d }}" data-kind="{{ $l.kind }}" data-from="{{ $l.from }}" data-to="{{ $l.to }}"><title>{{ $l.label }}</title></path>
+      {{- end }}{{ end }}
+    {{- end }}
+    </g>
+    <g class="hd-beams"></g>
+    {{- range $id, $p := $P }}{{ $n := index $N $id }}
+    <g class="hd-chip k-{{ $n.kind }}" id="hdn-{{ $id }}" data-id="{{ $id }}"><rect x="{{ sub $p.x (div $p.w 2) }}" y="{{ sub $p.y (div $p.h 2) }}" width="{{ $p.w }}" height="{{ $p.h }}" rx="8"/><text x="{{ sub $p.x (sub (div $p.w 2) 14) }}" y="{{ add $p.y 4 }}">{{ $n.label }}</text></g>
+    {{- end }}
+  </svg>
+  <canvas class="hd-fx" aria-hidden="true"></canvas>
+  <ul class="hd-paths" hidden>
+  {{- range $T.paths }}{{ $pid := .id }}{{ if in (slice "p-telemetry" "p-jellyfin-wan" "p-pvc") $pid }}
+    <li data-label="{{ .label }}"><ol>{{ range .hops }}<li data-node="{{ .node }}"{{ with .via_link }} data-link="{{ . }}"{{ end }}></li>{{ end }}</ol></li>
+  {{- end }}{{ end }}
+  </ul>
+  <p class="hd-cap"><span class="pulse" aria-hidden="true"></span><span class="hd-cap-t" role="status" aria-live="off">Tracing a request</span><a href="/lab/#h-arch">Open the full map</a></p>
+</div>

@@ -8,14 +8,14 @@
       <p class="lead">{{ $h.lead }}</p>
       <p class="cta"><a class="btn btn-primary" href="/lab/">Explore the lab</a><a class="btn" href="/incidents/">Read the postmortems</a></p>
     </div>
+    {{ if site.Data.topology }}{{ partial "topology-hero.html" . }}{{ end }}
   </div>
 </section>
 
 <section class="band" aria-labelledby="h-live">
   <div class="wrap">
-    <div class="sec-head"><div><h2 id="h-live"><span class="idx">01</span>The lab, live</h2><p class="sec-sub">Pick a path and watch a request cross the real topology. Numbers below are read from the cluster.</p></div><a href="/lab/">Open the full map</a></div>
-    {{ if site.Data.topology }}{{ partial "topology.html" (dict "cycle" true) }}{{ end }}
-    <div class="map-block">{{ partial "telemetry.html" "full" }}</div>
+    <div class="sec-head"><div><h2 id="h-live"><span class="idx">01</span>The lab, live</h2><p class="sec-sub">Numbers read from the cluster, refreshed every minute.</p></div><a href="/lab/">Open the full map</a></div>
+    {{ partial "telemetry.html" "full" }}
     {{ partial "stats.html" . }}
   </div>
 </section>

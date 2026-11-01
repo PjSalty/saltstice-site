@@ -1,6 +1,6 @@
 /* article shell */
 .art-head{padding-block:72px 32px}
-.art-head h1{font:600 clamp(2rem,1.2rem + 3.4vw,3.4rem)/1.06 var(--sans);letter-spacing:-.045em;max-width:22ch;text-wrap:balance}
+.art-head h1{font:500 clamp(2rem,1.2rem + 3.4vw,3.4rem)/1.06 var(--sans);letter-spacing:-.045em;max-width:22ch;text-wrap:balance}
 .art-head .lede{margin-top:18px;max-width:62ch;color:var(--fg2);font-size:1.15rem;line-height:1.55}
 .art-head .meta{margin-bottom:20px}
 .pm{display:flex;flex-wrap:wrap;margin-top:28px;border:1px solid var(--line);border-radius:10px;background:var(--bg2);overflow:hidden}
