@@ -69,7 +69,7 @@ params:
           - {label: Traffic and DNS, ids: [bgp-speaker, cilium, traefik, traefik-dmz, cloudflared, cert-manager, external-dns]}
           - {label: GitOps and policy, ids: [flux, kyverno, netpol, karpenter, harbor-proxy, ci-pipeline]}
           - {label: Apps, ids: [jellyfin, jf-postgres, jf-valkey, internal-apps, authentik, dmz-apps]}
-          - {label: Observability, ids: [prometheus, alertmanager, grafana, loki, alloy, node-exporters, tempo, prom-public, grafana-public]}
+          - {label: Observability, ids: [prometheus, alertmanager, grafana, loki, alloy, node-exporters, tempo, prom-public]}
           - {label: Storage and backup, ids: [truenas-csi, nfs-csi, velero, seaweedfs]}
       - {id: storage, label: TrueNAS storage, zones: [z-storage], cols: 5}
     hero: [visitor, cloudflare, rb4011, crs317, crs328, vm-masters, vm-worker-1, vm-worker-2, vm-worker-3, pool-ci, vm-truenas, bgp-speaker, cilium, traefik, flux, pool-tank]

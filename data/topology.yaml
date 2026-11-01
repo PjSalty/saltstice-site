@@ -86,7 +86,6 @@ nodes:
   - {id: internal-apps, label: Internal apps, kind: service, zone: z-cluster, role: "SSO (Authentik), docs, dashboards, notifications and other LAN-only services behind Traefik", tags: [apps]}
   - {id: authentik, label: Authentik SSO, kind: service, zone: z-cluster, role: "Identity provider and forward-auth for protected routes", tags: [sso]}
   - {id: dmz-apps, label: DMZ apps, kind: service, zone: z-cluster, role: "Internet-facing chat/community services published through the DMZ ingress", tags: [dmz]}
-  - {id: grafana-public, label: Grafana (public status), kind: observability, zone: z-cluster, role: "Read-only status dashboards served at status.saltstice.com with rate limiting", tags: [status, public]}
   - {id: prom-public, label: Prometheus (public), kind: observability, zone: z-cluster, role: "Isolated Prometheus that stores only five pre-aggregated public series, pulled by federation", tags: [status, public]}
   - {id: prometheus, label: Prometheus, kind: observability, zone: z-cluster, role: "Main metrics store (kube-prometheus-stack); scrapes nodes, VMs, router, switches, iDRAC, Proxmox, TrueNAS", tags: [metrics]}
   - {id: alertmanager, label: Alertmanager, kind: observability, zone: z-cluster, role: "Routes alerts to push notification receivers by severity", tags: [alerts]}
@@ -132,8 +131,7 @@ links:
   - {id: l-cf-gh, from: cloudflare, to: github-pages, kind: https, label: "proxied origin fetch"}
   - {id: l-cf-cloudflared, from: cloudflared, to: cloudflare, kind: tunnel, label: "outbound tunnel (cloudflared dials out)"}
   - {id: l-cloudflared-traefik, from: cloudflared, to: traefik, kind: https, label: "HTTPS to Traefik"}
-  - {id: l-traefik-gp, from: traefik, to: grafana-public, kind: http, label: "Host rule for the status site"}
-  - {id: l-gp-pp, from: grafana-public, to: prom-public, kind: http, label: "PromQL query"}
+  - {id: l-traefik-pp, from: traefik, to: prom-public, kind: http, label: "GET-only telemetry API"}
   - {id: l-pp-prom, from: prom-public, to: prometheus, kind: federate, label: "federate 5 aggregate series /60s"}
   - {id: l-wan-rb, from: wan-client, to: rb4011, kind: https, label: "TCP port forward (Jellyfin WAN port)"}
   - {id: l-rb-traefik, from: rb4011, to: traefik, kind: https, label: "DNAT to Traefik VIP, jellyfin-wan entrypoint"}
@@ -196,17 +194,16 @@ paths:
       - {node: visitor, note: "Browser requests saltstice.com"}
       - {node: cloudflare, via_link: l-vis-cf, note: "HTTPS terminates at Cloudflare edge; cached"}
       - {node: github-pages, via_link: l-cf-gh, note: "Origin is GitHub Pages (origin not re-verified)"}
-  - id: p-status
-    label: Visitor to status.saltstice.com
+  - id: p-telemetry
+    label: Live telemetry on this site
     audience: public
-    description: Public status page. Cloudflare reaches the cluster through an outbound tunnel, so no inbound port is open. Grafana only sees a separate Prometheus that holds five aggregate series.
+    description: The charts on this site read five aggregate series through a GET-only API. Cloudflare reaches the cluster through an outbound tunnel, so no inbound port is open, and the API's Prometheus holds nothing but those five series.
     hops:
-      - {node: visitor, note: "Browser requests status.saltstice.com"}
+      - {node: visitor, note: "The page's script asks for the last two hours of each series"}
       - {node: cloudflare, via_link: l-vis-cf, note: "HTTPS, Zero Trust tunnel edge"}
       - {node: cloudflared, via_link: l-cf-cloudflared, note: "Tunnel (initiated outbound from the cluster)"}
-      - {node: traefik, via_link: l-cloudflared-traefik, note: "HTTPS; Host rule with per-client rate limit"}
-      - {node: grafana-public, via_link: l-traefik-gp, note: "HTTP to read-only Grafana"}
-      - {node: prom-public, via_link: l-gp-pp, note: "PromQL over HTTP"}
+      - {node: traefik, via_link: l-cloudflared-traefik, note: "GET on two read paths only, rate limited per client and overall"}
+      - {node: prom-public, via_link: l-traefik-pp, note: "Answers range queries; allows only this site as a CORS origin"}
       - {node: prometheus, via_link: l-pp-prom, note: "Federation of five pre-aggregated series every minute"}
   - id: p-jellyfin-wan
     label: Remote Jellyfin client
@@ -344,7 +341,7 @@ kubernetes:
     - "kube-prometheus-stack (Prometheus, Alertmanager, Grafana)"
     - "Loki + Alloy (logs)"
     - "Tempo (traces)"
-    - "Grafana public + Prometheus public (status page, federation)"
+    - "Prometheus public (federated aggregates behind the telemetry API)"
     - "Blackbox, Proxmox, iDRAC exporters"
     - "Alertmanager receivers: critical, warning, info push notifications"
   backups:
@@ -355,7 +352,7 @@ kubernetes:
     - {group: Platform and system, count: 17, examples: [kube-system, flux-system, metallb-system, cert-manager, external-secrets, karpenter]}
     - {group: Ingress and edge, count: 4, examples: [traefik, traefik-dmz, cloudflared, vpn]}
     - {group: Storage and backup, count: 5, examples: [truenas-csi, nfs-system, storage, velero]}
-    - {group: Observability, count: 5, examples: [monitoring, loki, tempo, grafana-public, prometheus-public]}
+    - {group: Observability, count: 5, examples: [monitoring, loki, tempo, prometheus-public]}
     - {group: Security, count: 4, examples: [kyverno, falco, crowdsec, security]}
     - {group: CI runners, count: 3, examples: [ci-runner, ci-runner-build, ci-runner-deploy]}
     - {group: Identity and inventory, count: 2, examples: [authentik, netbox]}
