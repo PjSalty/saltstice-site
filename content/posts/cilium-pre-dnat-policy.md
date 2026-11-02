@@ -19,7 +19,7 @@ Calico and Weave behave the same way. CNI policy engines run in the pod's networ
 
 ## `toEntities: kube-apiserver` matches only the direct path
 
-The `kube-apiserver` entity matches the node IPs of the API server, but it does not match the Kubernetes service ClusterIP. If your egress goes to `kubernetes.default.svc.cluster.local`, you need a separate rule for the ClusterIP range and the service port (`:443`). The docs make it look like one rule covers both. It doesn't.
+The `kube-apiserver` entity matches the node IPs of the API server, but it does not match the Kubernetes service ClusterIP. If your egress goes to the in-cluster API service name, you need a separate rule for the ClusterIP range and the service port (`:443`). The docs make it look like one rule covers both. It doesn't.
 
 ## Don't use `toCIDR: 0.0.0.0/0` as a workaround
 
@@ -36,7 +36,7 @@ When something's blocked and you don't know why, `cilium-dbg policy trace` from 
 ```bash
 # from the cilium agent pod on the node hosting the failing app pod
 cilium-dbg policy trace --src-k8s-namespace=$NS --src-k8s-pod=$POD \
-  --dst-ip=10.43.0.1 --dport=443 --protocol=TCP
+  --dst-ip=<api-clusterip> --dport=443 --protocol=TCP
 ```
 
 ## A working baseline

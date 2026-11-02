@@ -8,7 +8,7 @@ topics: ["Operations", "Proxmox"]
 slug: 2026-09-27-ups-false-low-battery-halted-host
 ---
 
-At 19:29 CDT on 2026-09-27 `upsmon` on the Proxmox host logged `battery is low`, then `Signal 10: User requested FSD`. The host halted, the UPS cut its outlets, and iDRAC's AC recovery brought it back about 12 minutes later.
+At 19:29 CDT on 2026-09-27 `upsmon` on the Proxmox host logged `battery is low`, then `Signal 10: User requested FSD`. The host halted, the UPS cut its outlets, and the server's AC power recovery setting brought it back about 12 minutes later.
 
 The UPS was fine. Input was 120.9 V, charge was 100%, estimated runtime was 684 seconds, and status was `OL` the whole time. No `ONBATT` line was ever logged.
 

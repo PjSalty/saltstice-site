@@ -9,7 +9,7 @@ topics: ["Hardware", "Proxmox"]
 
 ## The box
 
-A used Dell R740xd. Two Xeon Gold 6242R (40c/80t), 256GB DDR4 ECC, SSDs in a ZFS mirror for boot and VMs, bulk disks on HBA passthrough to a TrueNAS VM, an RTX A2000, iDRAC9 on the management VLAN, 10GbE to a CRS317, and an RB4011 doing the routing.
+A used Dell R740xd. Two Xeon Gold 6242R (40c/80t), 256GB DDR4 ECC, SSDs in a ZFS mirror for boot and VMs, bulk disks on HBA passthrough to a TrueNAS VM, an RTX A2000, out-of-band management, 10GbE to a CRS317, and an RB4011 doing the routing.
 
 ## What runs on it
 

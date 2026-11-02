@@ -1,12 +1,8 @@
-{{- /* Renders a lab fact from data/lab.yaml. Usage: {{< lab "vms_running" >}}
-       Unknown keys fail the build. Keys that have a live source in the public metrics API are marked so live.js can
-       replace the build-time value in the browser; the build-time value stays when the API does not answer. */ -}}
+{{- /* Renders a live lab fact. Usage: {{< lab "vms_running" >}}
+       The value comes from the public telemetry API at build time (the
+       livefact partial), and live.js refreshes it in the browser. A fact with
+       no live source fails the build: anything the site cannot read live does
+       not belong on it. */ -}}
 {{- $key := .Get 0 -}}
-{{- $v := index site.Data.lab $key -}}
-{{- if eq $v nil -}}
-  {{- errorf "lab shortcode: key %q not found in data/lab.yaml (page %s)" $key .Page.Path -}}
-{{- else if in (slice "vms_running" "k8s_nodes" "ram_allocated_gib" "ram_total_gib" "rke2_version") $key -}}
-  <span data-live="{{ $key }}">{{ $v }}</span>
-{{- else -}}
-  {{- $v -}}
-{{- end -}}
+<span data-live="{{ $key }}">{{ partial "livefact.html" $key }}</span>
+{{- /**/ -}}

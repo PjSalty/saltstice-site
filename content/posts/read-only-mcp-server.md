@@ -24,7 +24,6 @@ Transport is Streamable HTTP behind the ingress with bearer-token auth. The toke
 ## Things that bit me
 
 - Policy engines see pre-DNAT ports. The egress network policies for the server had to allow the container ports, not the Service ports. Same lesson as the [pre-DNAT incident]({{< relref "/incidents/2026-04-09-cilium-pre-dnat-policy.md" >}}), and it generalizes.
-- iDRAC isn't reachable from the pod CIDR. It sits on the management VLAN, so a small socat proxy unit on the hypervisor bridges that one port. It's ugly but contained, and I documented it in the role.
 - Flux postBuild substitution eats `${VAR}`. Any ConfigMap carrying a literal `${VAR}` for Go's `os.ExpandEnv` needs the `$$` doubling, or Flux substitutes it to an empty string first and you're left debugging that.
 - The Go MCP SDK wants bare description text in the `jsonschema` struct tags. `description=text` silently becomes a tool with no description, and the client then uses it badly.
 

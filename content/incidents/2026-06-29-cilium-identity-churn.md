@@ -26,13 +26,13 @@ Kyverno was crashlooping, 21 restarts on one controller, and its logs
 said it couldn't reach the Kubernetes API:
 
 ```
-dial tcp 10.43.0.1:443: i/o timeout ... configmap informer cache failed to sync
+dial tcp <api-clusterip>:443: i/o timeout ... configmap informer cache failed to sync
 ```
 
 The nodes weren't starved (CPU ~40%, memory ~50%). The apiserver was
-healthy. cert-manager was separately logging `dial udp 10.43.0.10:53:
+healthy. cert-manager was separately logging `dial udp <dns-clusterip>:53:
 operation not permitted`, so DNS ClusterIP was dropping too. Pods could
-not reach ClusterIPs (the API on `10.43.0.1`, DNS on `10.43.0.10`) on
+not reach ClusterIPs (the API on `<api-clusterip>`, DNS on `<dns-clusterip>`) on
 specific nodes, while the CNI insisted everything was fine.
 
 `cilium status` on those nodes: `Ok`, 6/6 reachable, all controllers

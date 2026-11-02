@@ -1,23 +1,23 @@
-# Lab facts, the single source for every mutable number or version the
-# prose mentions. Prose references these via the `lab` shortcode:
-#   {{< lab "vms_running" >}}
-# Verified against the live lab (Proxmox VM list, Kubernetes node status,
-# image-versions SSOT, TrueNAS system info, RouterOS resources) on
-# 2026-11-01. Until the cluster pushes this file itself, refreshing it is
-# one edit here instead of a hunt across pages.
+# Fallback values for the live lab facts. Every fact on the site is read from
+# the public telemetry API: at build time by the livefact partial (the Pages
+# workflow also rebuilds daily) and again in the browser by live.js. These
+# values are shown only when a build cannot reach the API, and that build logs
+# a warning. They are the last values read from the API, on 2026-11-01.
+#
+# A fact with no live source does not belong here or on the site: the TrueNAS
+# and RouterOS versions were removed for that reason. Release lines are
+# major.minor only; exact patch levels on a public page are a ready-made CVE
+# shopping list.
 
 # counts
-vms_running: 23          # includes autoscaled CI nodes and a few test guests
-k8s_nodes: 6             # static nodes: 3 control plane, 3 workers
-k8s_ci_nodes: 3          # Karpenter ci-pool nodes alive on 2026-11-01, comes and goes
-ram_allocated_gib: 238   # sum of maxmem of running guests, includes the CI nodes
-ram_total_gib: 256
+vms_running: 21
+k8s_nodes: 9
+namespaces: 61
+ram_allocated_gib: "222.0"
+ram_total_gib: "251.5"
 
-# Versions are published at release-line precision on purpose: exact patch
-# levels on a public page are a ready-made CVE shopping list.
-truenas_version: "25.10"
-routeros_version: "7"
+# release lines
 rke2_version: "1.36"
-# Read from the manifests in the cluster repo on 2026-11-01 (csi v1.3.0), Velero and Traefik carried over:
+jellyfin_version: "12.4"
 velero_version: "1.18"
 truenas_csi_version: "1.3"

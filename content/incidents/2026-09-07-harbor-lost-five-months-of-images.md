@@ -40,7 +40,7 @@ Compare every private pin in the SSOT against that output.
 
 Harbor got a few more of these in a row, and they share a shape:
 
-- On 2026-08-28 an auto-merge chain upgraded Harbor 2.12.2 to 2.15.2. Core returned 500s, and because the CI runner pulls its helper images through Harbor, the repair path deadlocked.
+- On 2026-08-28 an auto-merge chain upgraded Harbor from 2.12 to 2.15. Core returned 500s, and because the CI runner pulls its helper images through Harbor, the repair path deadlocked.
 - On 2026-09-23 Renovate's timestamp requirement and a 100-push retention policy aged out the first-party pins. Pins for my own images fell out of the retention window.
 - On 2026-10-19 the registry's root disk filled.
 

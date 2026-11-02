@@ -1,0 +1,103 @@
+{{- /* A lab fact read from the public telemetry API at build time.
+       Pass the fact name. Returns the formatted value as a string. The daily
+       scheduled build keeps it current for readers without JavaScript; live.js
+       refreshes it in the browser. data/lab.yaml is only the fallback for a
+       build that cannot read the API, and every fallback logs a warning. The
+       API being down, answering with a non-JSON page (an edge challenge, an
+       error page) or with an unexpected shape never fails the build; an
+       unknown fact name does. The Pages workflow keeps no Hugo cache between
+       runs, so every build fetches.
+       Kinds: n (a count), gib (bytes shown as GiB), line (the series' `line`
+       label, a major.minor release line). */ -}}
+{{- $key := . -}}
+{{- $facts := dict
+  "vms_running"         (slice "public:vms_running:count" "n")
+  "k8s_nodes"           (slice "public:k8s_nodes:count" "n")
+  "namespaces"          (slice "public:namespaces:count" "n")
+  "ram_allocated_gib"   (slice "public:vm_memory_allocated:bytes" "gib")
+  "ram_total_gib"       (slice "public:host_memory:bytes" "gib")
+  "rke2_version"        (slice "public:kubernetes_version:info" "line")
+  "jellyfin_version"    (slice "public:jellyfin_version:info" "line")
+  "velero_version"      (slice "public:velero_version:info" "line")
+  "truenas_csi_version" (slice "public:truenas_csi_version:info" "line")
+-}}
+{{- $out := index site.Data.lab $key -}}
+{{- with index $facts $key -}}
+  {{- $series := index . 0 -}}
+  {{- $kind := index . 1 -}}
+  {{- $url := printf "%s/query?query=%s" site.Params.telemetry.endpoint $series -}}
+  {{- $why := "" -}}
+  {{- $got := "" -}}
+  {{- with try (resources.GetRemote $url) -}}
+    {{- if .Err -}}
+      {{- $why = printf "request failed: %s" .Err -}}
+    {{- else if not .Value -}}
+      {{- $why = "no response body (status not 2xx)" -}}
+    {{- else -}}
+      {{- $p := try (transform.Unmarshal .Value.Content) -}}
+      {{- if $p.Err -}}
+        {{- $why = "the response is not JSON" -}}
+      {{- else -}}
+        {{- $j := $p.Value -}}
+        {{- $s := dict -}}
+        {{- if and (reflect.IsMap $j) (eq (index $j "status") "success") -}}
+          {{- with index $j "data" -}}
+            {{- if reflect.IsMap . -}}
+              {{- with index . "result" -}}
+                {{- if and (reflect.IsSlice .) (gt (len .) 0) (reflect.IsMap (index . 0)) -}}
+                  {{- $s = index . 0 -}}
+                {{- end -}}
+              {{- end -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+        {{- if not $s -}}
+          {{- $why = "the API returned no sample" -}}
+        {{- else if eq $kind "line" -}}
+          {{- /* Nested with/if, not cond: cond evaluates both branches, so an
+                 index inside it would run on a missing or non-map value. */ -}}
+          {{- $l := "" -}}
+          {{- with index $s "metric" -}}
+            {{- if reflect.IsMap . -}}
+              {{- with index . "line" }}{{ $l = printf "%v" . }}{{ end -}}
+            {{- end -}}
+          {{- end -}}
+          {{- if findRE `^[0-9]+\.[0-9]+$` $l -}}
+            {{- $got = $l -}}
+          {{- else -}}
+            {{- $why = "the sample has no major.minor line label" -}}
+          {{- end -}}
+        {{- else -}}
+          {{- $raw := "" -}}
+          {{- with index $s "value" -}}
+            {{- if reflect.IsSlice . -}}
+              {{- if eq (len .) 2 }}{{ $raw = printf "%v" (index . 1) }}{{ end -}}
+            {{- end -}}
+          {{- end -}}
+          {{- if findRE `^-?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?$` $raw -}}
+            {{- $f := float $raw -}}
+            {{- if eq $kind "gib" -}}
+              {{- $got = printf "%.1f" (div $f 1073741824.0) -}}
+            {{- else -}}
+              {{- $got = printf "%d" (int (math.Round $f)) -}}
+            {{- end -}}
+          {{- else -}}
+            {{- $why = printf "the sample value %q is not a number" $raw -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if $got -}}
+    {{- $out = $got -}}
+  {{- else -}}
+    {{- warnf "livefact %q: %s (using fallback %v)" $key (default "unknown failure" $why) $out -}}
+  {{- end -}}
+{{- else -}}
+  {{- errorf "livefact: %q has no live source; add it to the facts map" $key -}}
+{{- end -}}
+{{- if eq $out nil -}}
+  {{- errorf "livefact %q: no API value and no fallback in data/lab.yaml" $key -}}
+  {{- $out = "" -}}
+{{- end -}}
+{{- return (printf "%v" $out) -}}

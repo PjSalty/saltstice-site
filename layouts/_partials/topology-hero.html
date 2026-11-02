@@ -8,7 +8,8 @@
 {{- $host := index $N $cfg.host -}}
 {{- $masters := index $N "vm-masters" -}}{{ $pool := index $N "pool-ci" -}}
 {{- $workers := 0 -}}{{ range $T.nodes }}{{ if and (eq .kind "k8s-worker") (eq (.parent | default "") $cfg.host) }}{{ $workers = add $workers 1 }}{{ end }}{{ end -}}
-{{- $nm := int $masters.count -}}{{ $np := int $pool.count -}}{{ $ng := add (add $nm $workers) $np -}}
+{{- /* Static nodes (control plane + workers) come from the topology; CI glyphs are the live node total minus those. */ -}}
+{{- $nm := int $masters.count -}}{{ $np := sub (int (partial "livefact.html" "k8s_nodes")) (add $nm $workers) -}}{{ if lt $np 0 }}{{ $np = 0 }}{{ end -}}{{ $ng := add (add $nm $workers) $np -}}
 {{- $D := dict
   "vb" (slice 1200 640) "host" (slice 472 16 712 600) "ring" (slice 956 296 80) "ro" (slice 956 448) "title" (slice 496 52) "k" 1
   "P" (dict
@@ -26,7 +27,7 @@
     "cloudflared" (slice 20 480 164 40) "traefik" (slice 192 480 148 40) "bgp-speaker" (slice 20 536 320 40) "external-dns" (slice 20 592 320 40) "vm-adguard" (slice 20 648 164 40) "vm-adguard-2" (slice 192 648 148 40) "cert-manager" (slice 20 704 164 40) "prom-public" (slice 192 704 148 40)
     "vm-truenas" (slice 20 1008 164 40) "pool-tank" (slice 192 1008 148 40) "ds-backups" (slice 20 1064 164 40))
   "links" (slice "l-vis-cf" "l-cf-gh" "l-isp-rb" "l-wan-rb" "l-cf-cloudflared" "l-cloudflared-traefik" "l-traefik-pp" "l-bgp" "l-adg-pair" "l-truenas-pool") -}}
-<div class="hero-dia" data-hero  data-endpoint="{{ site.Params.telemetry.endpoint }}" data-k8s-static="{{ site.Data.lab.k8s_nodes }}">
+<div class="hero-dia" data-hero  data-endpoint="{{ site.Params.telemetry.endpoint }}" data-k8s-static="{{ add $nm $workers }}">
 <div class="hd-stage">
 {{- range $v, $V := dict "d" $D "m" $M }}
 {{- $vb := $V.vb }}{{ $H := $V.host }}{{ $R := $V.ring }}
@@ -59,7 +60,7 @@
     <g class="hd-node {{ $cls }}"><title>{{ cond (eq $cls "m") "Control plane node" (cond (eq $cls "w") "Worker node" "Autoscaled CI node") }}</title><rect x="{{ printf "%.1f" (sub $gx 12) }}" y="{{ printf "%.1f" (sub $gy 12) }}" width="24" height="24" rx="6"/><path d="M{{ printf "%.1f" (sub $gx 6) }} {{ printf "%.1f" (sub $gy 4) }}h12M{{ printf "%.1f" (sub $gx 6) }} {{ printf "%.1f" $gy }}h12M{{ printf "%.1f" (sub $gx 6) }} {{ printf "%.1f" (add $gy 4) }}h12"/><circle class="hd-rdy" cx="{{ printf "%.1f" (add $gx 15) }}" cy="{{ printf "%.1f" (sub $gy 15) }}" r="3"/></g>
     {{- end }}
     <text class="hd-h2" x="{{ index $R 0 }}" y="{{ sub (index $R 1) 6 }}" text-anchor="middle">Kubernetes</text>
-    <text class="hd-s" x="{{ index $R 0 }}" y="{{ add (index $R 1) 14 }}" text-anchor="middle"><tspan data-live="rke2_version">{{ index (split $T.kubernetes.version " ") 0 }}</tspan></text>
+    <text class="hd-s" x="{{ index $R 0 }}" y="{{ add (index $R 1) 14 }}" text-anchor="middle"><tspan data-live="rke2_version">{{ partial "livefact.html" "rke2_version" }}</tspan></text>
     <text class="hd-ro" x="{{ index $V.ro 0 }}" y="{{ index $V.ro 1 }}" text-anchor="middle"> </text>
 
     {{- else }}{{ end }}

@@ -3,6 +3,11 @@ title: Salty
 languageCode: en-us
 enableEmoji: true
 enableRobotsTXT: true
+# Page dates come from git (the Pages build checks out full history), so a
+# "last updated" line can never be a hand-typed date that goes stale.
+enableGitInfo: true
+# No <meta name="generator"> with the exact Hugo version in every page head.
+disableHugoGeneratorInject: true
 buildDrafts: false
 buildFuture: false
 buildExpired: false

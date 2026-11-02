@@ -86,7 +86,7 @@ expansion entirely:
 ```yaml
 # apps/jellyfin/base/deployments/leader.yaml
 - name: POSTGRES_HOST
-  value: jellyfin-postgres.media.svc.cluster.local.
+  value: <postgres-service>.<namespace>.svc.cluster.local.
 ```
 
 The trailing dot is the whole point. It tells glibc the name is already

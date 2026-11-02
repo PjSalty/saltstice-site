@@ -18,7 +18,7 @@ It's an overlay build: `UPSTREAM_REF` pins the upstream plugin, `patches/` holds
 - `CACHE_ENABLED` is off by default, and then the plugin acts like upstream.
 - Run Valkey as a cache, not a datastore: `--maxmemory-policy volatile-lru`, persistence off, a `--maxmemory` bound.
 
-Release tags read `<server>-<upstream plugin release>-salty.<rev>`. The latest is `12.2-0-salty.1`. The older 10.11 line was `10.11.11-1-salty.N`.
+Release tags read `<server>-<upstream plugin release>-salty.<rev>`. The current ones are on the [releases page](https://github.com/PjSalty/jellyfin-pgsql/releases). The older 10.11 line was `10.11.11-1-salty.N`.
 
 The write-up of the original design is [Jellyfin on Postgres with a Valkey cache](/posts/jellyfin-on-postgres-with-a-valkey-second-level-cache/).
 

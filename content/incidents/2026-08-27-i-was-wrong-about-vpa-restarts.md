@@ -14,7 +14,7 @@ On 2026-08-22 I asserted a failure mechanism. On 2026-08-27 I re-checked it agai
 
 **"In-place resize restarts the container."** False. `resizePolicy` is unset on every Kyverno container, so it defaults to no restart, and the kubelet changes cgroup limits in place. I proved it live: `traefik-dmz` was resized in place twice on 2026-08-27 and both pods still show `restartCount 0` at three days old.
 
-**"The PDB never applies."** False. VPA 1.7.1 only bypasses disruption budgets with `--in-place-skip-disruption-budget`, and it isn't set on this updater. The updater says so itself: `replica count below minimum while in-place-skip-disruption-budget is disabled`.
+**"The PDB never applies."** False. VPA 1.7 only bypasses disruption budgets with `--in-place-skip-disruption-budget`, and it isn't set on this updater. The updater says so itself: `replica count below minimum while in-place-skip-disruption-budget is disabled`.
 
 **"The webhook is fail-closed and a 502 broke Flux."** True, but not VPA's doing.
 

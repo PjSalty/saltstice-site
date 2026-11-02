@@ -32,7 +32,7 @@ When you move a volume to tmpfs, size every container that writes to it, not jus
 
 Karpenter was installed on the Proxmox provider but had never made a node. I added a tainted, scale-to-zero `ci-pool` and steered job pods to it. The first launches created VMs, but no Node ever appeared.
 
-The agent install and server handshake were fine. The cause was a kubelet flag for the graceful-node period: RKE2 v1.36.3 ships Kubernetes 1.36, which rejected it with `failed to parse kubelet flag: unknown flag`, and the kubelet exited every five seconds. The settings moved into a `kubelet.conf.d` drop-in, and the first node joined.
+The agent install and server handshake were fine. The cause was a kubelet flag for the graceful-node period: the Kubernetes 1.36 that RKE2 ships rejected it with `failed to parse kubelet flag: unknown flag`, and the kubelet exited every five seconds. The settings moved into a `kubelet.conf.d` drop-in, and the first node joined.
 
 I could only see that because cloud-init now installs and starts `qemu-guest-agent`. The Debian cloud image doesn't ship it, and without it there was no way to read the VM's logs.
 

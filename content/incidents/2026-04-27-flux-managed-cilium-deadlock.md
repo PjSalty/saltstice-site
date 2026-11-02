@@ -10,7 +10,7 @@ slug: 2026-04-27-flux-managed-cilium-deadlock
 The rollback plan was the outage. I wanted Cilium off RKE2's bundled
 chart and onto a Flux HelmRelease, staged the manifests, resumed the
 release, and watched Flux's source-controller sit there unable to fetch
-`cilium-1.19.3.tgz` from `helm.cilium.io`. source-controller runs on the
+`cilium-1.19.x.tgz` from `helm.cilium.io`. source-controller runs on the
 pod network. The pod network is the thing Cilium provides. The moment
 the old release went away, the controller that was supposed to install
 the new one lost its own networking, and there was nothing left that
